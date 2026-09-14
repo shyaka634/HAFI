@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Hafi</title>
+  <rect width="512" height="512" rx="112" fill="#008a54"/>
+  <path d="M256 76c-86 0-156 66.8-156 149.1C100 376.7 256 468 256 468s156-91.3 156-242.9C412 142.8 342 76 256 76Z" fill="#008a54" stroke="#fff" stroke-width="18"/>
+  <path d="M168 300c13-52 39-78 76-78 34 0 46 25 74 25 17 0 31-9 43-23" stroke="#fff" stroke-linecap="round" stroke-width="24"/>
+  <circle cx="164" cy="316" fill="#fff" r="18"/>
+  <circle cx="367" cy="218" fill="#fff" r="18"/>
+</svg>

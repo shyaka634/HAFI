@@ -1,0 +1,13 @@
+{
+  "name": "Hafi — Trusted services near you",
+  "short_name": "Hafi",
+  "description": "Find trusted local services across Rwanda.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#cde7ca",
+  "theme_color": "#006b43",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

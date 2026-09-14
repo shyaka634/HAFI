@@ -1,0 +1,293 @@
+import type { ServiceCategory } from "@/lib/types";
+
+// This is a small, traceable starter directory for the MVP. Each record links
+// to a public map place record. Rwanda Ministry of Health, Rwanda FDA, and
+// Rwanda Standards Board directories were also consulted on 2026-09-01.
+//
+// Keep this list intentionally small. Business information changes, so agents
+// and managers should grow and re-check it through the approval workflow.
+export type VerifiedServiceSeed = {
+  id: string;
+  name: string;
+  category: ServiceCategory;
+  district: string;
+  sector: string;
+  address: string;
+  phone?: string;
+  latitude: number;
+  longitude: number;
+  sourceUrl: string;
+};
+
+export const verifiedDirectorySources = [
+  "https://www.moh.gov.rw/affiliates-teaching-hospitals/hospitals",
+  "https://rwandafda.gov.rw/medicine-inspection-registered-premises/",
+  "https://www.rsb.gov.rw/certifications/directories/certified-warehouses",
+  "https://www.openstreetmap.org/copyright",
+] as const;
+
+export const verifiedRwandaServices: readonly VerifiedServiceSeed[] = [
+  // Hospitals
+  {
+    id: "verified-king-faisal-hospital-kigali",
+    name: "King Faisal Hospital Rwanda",
+    category: "HOSPITAL",
+    district: "Gasabo",
+    sector: "Kacyiru",
+    address: "KG 544 St 10, Kamatamu, Kacyiru, Kigali",
+    phone: "+250 788 123 200",
+    latitude: -1.94344,
+    longitude: 30.09546,
+    sourceUrl: "https://mapcarta.com/W151366969",
+  },
+  {
+    id: "verified-kibagabaga-district-hospital",
+    name: "Kibagabaga District Hospital",
+    category: "HOSPITAL",
+    district: "Gasabo",
+    sector: "Kimironko",
+    address: "Kibagabaga, Kimironko, Kigali",
+    phone: "+250 788 732 945",
+    latitude: -1.93077,
+    longitude: 30.11191,
+    sourceUrl: "https://mapcarta.com/N12950467679",
+  },
+  {
+    id: "verified-rwanda-military-referral-hospital",
+    name: "Rwanda Military Referral and Teaching Hospital",
+    category: "HOSPITAL",
+    district: "Kicukiro",
+    sector: "Nyarugunga",
+    address: "Kamashashi, Nyarugunga, Kicukiro, Kigali",
+    phone: "+250 734 885 434",
+    latitude: -1.9786,
+    longitude: 30.16791,
+    sourceUrl: "https://mapcarta.com/N12950467193",
+  },
+  {
+    id: "verified-la-croix-du-sud-hospital",
+    name: "La Croix du Sud Hospital",
+    category: "HOSPITAL",
+    district: "Gasabo",
+    sector: "Remera",
+    address: "Rukiri I, Remera, Kigali",
+    phone: "+250 785 246 882",
+    latitude: -1.95828,
+    longitude: 30.10612,
+    sourceUrl: "https://mapcarta.com/N12950467522",
+  },
+  {
+    id: "verified-horebu-medical-clinic",
+    name: "Horebu Medical Clinic",
+    category: "HOSPITAL",
+    district: "Gasabo",
+    sector: "Remera",
+    address: "Nyabisindu, Remera, Kigali",
+    phone: "+250 784 275 588",
+    latitude: -1.95844,
+    longitude: 30.10735,
+    sourceUrl: "https://mapcarta.com/N12950467171",
+  },
+
+  // Hotels
+  {
+    id: "verified-kigali-marriott-hotel",
+    name: "Kigali Marriott Hotel",
+    category: "HOTEL",
+    district: "Nyarugenge",
+    sector: "Nyarugenge",
+    address: "KN 3 Avenue, Nyarugenge District, Kigali",
+    phone: "+250 222 111 111",
+    latitude: -1.95362,
+    longitude: 30.06251,
+    sourceUrl: "https://mapcarta.com/W781719533",
+  },
+  {
+    id: "verified-hotel-des-mille-collines",
+    name: "Hotel des Mille Collines",
+    category: "HOTEL",
+    district: "Nyarugenge",
+    sector: "Nyarugenge",
+    address: "Kiyovu, Kigali",
+    latitude: -1.94708,
+    longitude: 30.0619,
+    sourceUrl: "https://mapcarta.com/32690842",
+  },
+  {
+    id: "verified-the-retreat-by-heaven",
+    name: "The Retreat by Heaven",
+    category: "HOTEL",
+    district: "Nyarugenge",
+    sector: "Nyarugenge",
+    address: "5 KN 29 St, Kiyovu, Kigali",
+    phone: "+250 782 000 001",
+    latitude: -1.94732,
+    longitude: 30.06509,
+    sourceUrl: "https://mapcarta.com/N9073405217",
+  },
+  {
+    id: "verified-hotel-chez-lando",
+    name: "Hotel Chez Lando",
+    category: "HOTEL",
+    district: "Gasabo",
+    sector: "Remera",
+    address: "Rukiri II, Remera, Kigali",
+    latitude: -1.95931,
+    longitude: 30.10831,
+    sourceUrl: "https://mapcarta.com/W173306040",
+  },
+  {
+    id: "verified-kigali-serena",
+    name: "Kigali Serena Hotel",
+    category: "HOTEL",
+    district: "Nyarugenge",
+    sector: "Nyarugenge",
+    address: "Kiyovu, Kigali",
+    latitude: -1.95011,
+    longitude: 30.05877,
+    sourceUrl: "https://mapcarta.com/32587438",
+  },
+
+  // Pharmacies
+  {
+    id: "verified-rite-pharmacy-kicukiro",
+    name: "Rite Pharmacy Kicukiro Branch",
+    category: "PHARMACY",
+    district: "Kicukiro",
+    sector: "Kicukiro",
+    address: "KK 19 Avenue, near Kicukiro-Sonatube Roundabout, Kigali",
+    phone: "+250 792 573 794",
+    latitude: -1.96825,
+    longitude: 30.10316,
+    sourceUrl: "https://mapcarta.com/N10896598290",
+  },
+  {
+    id: "verified-medicentre-pharmacy-kicukiro",
+    name: "Medicentre Pharmacy",
+    category: "PHARMACY",
+    district: "Kicukiro",
+    sector: "Niboye",
+    address: "3 KK 513 Street, Gatare, Niboye, Kigali",
+    phone: "+250 788 539 433",
+    latitude: -1.98084,
+    longitude: 30.10463,
+    sourceUrl: "https://mapcarta.com/N10896608811",
+  },
+  {
+    id: "verified-teva-pharmacy-kicukiro",
+    name: "Teva Pharmacy",
+    category: "PHARMACY",
+    district: "Kicukiro",
+    sector: "Niboye",
+    address: "3 KK 513 Street, Gatare, Niboye, Kigali",
+    phone: "+250 788 399 109",
+    latitude: -1.98066,
+    longitude: 30.10464,
+    sourceUrl: "https://mapcarta.com/N10896608812",
+  },
+  {
+    id: "verified-safina-pharmacy-kicukiro",
+    name: "Safina Pharmacy",
+    category: "PHARMACY",
+    district: "Kicukiro",
+    sector: "Kicukiro",
+    address: "Gasharu, Kicukiro, Kigali",
+    latitude: -1.97174,
+    longitude: 30.09958,
+    sourceUrl: "https://mapcarta.com/N10968164566",
+  },
+
+  // Markets
+  {
+    id: "verified-kimironko-market",
+    name: "Kimironko Market",
+    category: "MARKET",
+    district: "Gasabo",
+    sector: "Kimironko",
+    address: "Nyagatovu, Kimironko, Kigali",
+    latitude: -1.94987,
+    longitude: 30.12622,
+    sourceUrl: "https://mapcarta.com/W106506354",
+  },
+  {
+    id: "verified-kicukiro-market",
+    name: "Kicukiro Market",
+    category: "MARKET",
+    district: "Kicukiro",
+    sector: "Niboye",
+    address: "Gatare, Niboye, Kicukiro, Kigali",
+    latitude: -1.98149,
+    longitude: 30.10441,
+    sourceUrl: "https://mapcarta.com/N317409364",
+  },
+  {
+    id: "verified-kicukiro-nyanza-market",
+    name: "Kicukiro Nyanza Market",
+    category: "MARKET",
+    district: "Kicukiro",
+    sector: "Kagarama",
+    address: "Rukatsa, Kagarama, Kicukiro, Kigali",
+    latitude: -2.00503,
+    longitude: 30.09005,
+    sourceUrl: "https://mapcarta.com/N10931576684",
+  },
+  {
+    id: "verified-gahanga-market",
+    name: "Gahanga Market",
+    category: "MARKET",
+    district: "Kicukiro",
+    sector: "Gahanga",
+    address: "Gahanga, Kicukiro, Kigali",
+    latitude: -2.02666,
+    longitude: 30.10458,
+    sourceUrl: "https://mapcarta.com/W618873135",
+  },
+  {
+    id: "verified-rusizi-market",
+    name: "Rusizi Market",
+    category: "MARKET",
+    district: "Rusizi",
+    sector: "Kamembe",
+    address: "Gihundwe, Kamembe, Rusizi",
+    latitude: -2.47816,
+    longitude: 28.91038,
+    sourceUrl: "https://mapcarta.com/W1125293210",
+  },
+
+  // Garages
+  {
+    id: "verified-garage-weikl",
+    name: "Garage Weikl",
+    category: "GARAGE",
+    district: "Nyarugenge",
+    sector: "Nyarugenge",
+    address: "Near University of Rwanda CBE, Kigali",
+    phone: "+250 788 445 580",
+    latitude: -1.95643,
+    longitude: 30.07374,
+    sourceUrl: "https://mapcarta.com/N5778887804",
+  },
+  {
+    id: "verified-auto-track-garage",
+    name: "Auto Track Garage",
+    category: "GARAGE",
+    district: "Kicukiro",
+    sector: "Kicukiro",
+    address: "KN 3 Road, Gasharu, Kicukiro, Kigali",
+    latitude: -1.96863,
+    longitude: 30.09691,
+    sourceUrl: "https://mapcarta.com/N3620634019",
+  },
+  {
+    id: "verified-blue-gear-machinery",
+    name: "Blue Gear Machinery Ltd",
+    category: "GARAGE",
+    district: "Gasabo",
+    sector: "Remera",
+    address: "KN 5 Road, Rukiri II, Remera, Kigali",
+    phone: "+250 784 110 555",
+    latitude: -1.96108,
+    longitude: 30.12202,
+    sourceUrl: "https://mapcarta.com/W1107972037",
+  },
+];

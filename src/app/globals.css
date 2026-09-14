@@ -1,0 +1,107 @@
+@import "leaflet/dist/leaflet.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { @apply border-slate-200; }
+  html { scroll-behavior: smooth; }
+  body { @apply min-h-screen text-ink antialiased; background-color: #cde7ca; }
+  button, input, select, textarea { font: inherit; }
+}
+
+@layer utilities {
+  .hero-grid {
+    background-image: linear-gradient(rgba(255,255,255,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.7) 1px, transparent 1px);
+    background-size: 34px 34px;
+  }
+
+  .hero-word {
+    display: inline-block;
+    opacity: 0;
+    animation: hero-word-reveal 3.2s cubic-bezier(.16, 1, .3, 1) infinite both;
+  }
+}
+
+@keyframes hero-word-reveal {
+  0%, 12% { opacity: 0; transform: translateY(.58em); filter: blur(7px); }
+  24%, 76% { opacity: 1; transform: translateY(0); filter: blur(0); }
+  88%, 100% { opacity: 0; transform: translateY(-.18em); filter: blur(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-word { animation: none; opacity: 1; }
+}
+
+/* Theme overrides deliberately use the existing utility class names. This lets
+   every page share one carefully tuned dark palette without duplicating styles. */
+html.dark { color-scheme: dark; }
+
+html.dark body {
+  background: radial-gradient(circle at top, #173c35 0%, #0b171b 42%, #071015 100%);
+  color: #e7f0f6;
+}
+
+/* Give light mode a gentle green surface without changing the white content cards. */
+html:not(.dark) header.sticky {
+  background-color: rgb(205 231 202 / .92);
+}
+
+html:not(.dark) header.sticky > div.border-t {
+  background-color: rgb(205 231 202 / .78);
+}
+
+/* Cards keep their visual separation in light mode without returning to white. */
+html:not(.dark) .rounded-2xl.bg-white {
+  background-color: #f1f8ef;
+}
+
+html.dark .bg-white,
+html.dark .bg-white\/90,
+html.dark .bg-white\/75 { background-color: #122126 !important; }
+html.dark .bg-slate-50 { background-color: #0d191e !important; }
+html.dark .bg-slate-100 { background-color: #1a2a30 !important; }
+html.dark .bg-slate-200 { background-color: #263940 !important; }
+html.dark .bg-forest-50 { background-color: #12352b !important; }
+html.dark .bg-lake-50 { background-color: #102b3a !important; }
+html.dark .bg-amber-50 { background-color: #3a2d12 !important; }
+html.dark .bg-red-50 { background-color: #3b1b22 !important; }
+
+html.dark .text-ink { color: #edf7f6 !important; }
+html.dark .text-slate-300 { color: #b8c8cf !important; }
+html.dark .text-slate-400 { color: #9cafb7 !important; }
+html.dark .text-slate-500 { color: #afc0c7 !important; }
+html.dark .text-slate-600,
+html.dark .text-slate-700 { color: #c8d7dc !important; }
+html.dark .text-forest-700 { color: #65dca2 !important; }
+html.dark .text-lake-600 { color: #78c5ff !important; }
+
+html.dark .border,
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-slate-200\/80 { border-color: #29414a !important; }
+html.dark input,
+html.dark select,
+html.dark textarea { background-color: #0b171b !important; border-color: #29414a !important; color: #edf7f6 !important; }
+html.dark input::placeholder,
+html.dark textarea::placeholder { color: #78909a !important; }
+html.dark input:focus,
+html.dark select:focus,
+html.dark textarea:focus { border-color: #20b878 !important; }
+
+html.dark .hover\:bg-slate-100:hover { background-color: #1d3037 !important; }
+html.dark .hover\:bg-forest-50:hover { background-color: #174537 !important; }
+html.dark .hover\:border-forest-200:hover { border-color: #287a5d !important; }
+html.dark .shadow-soft { box-shadow: 0 18px 45px -25px rgba(0, 0, 0, .85); }
+html.dark .shadow-lift { box-shadow: 0 24px 48px -24px rgba(0, 0, 0, .75); }
+
+html.dark .from-forest-50 { --tw-gradient-from: #132b25 var(--tw-gradient-from-position) !important; }
+html.dark .via-white { --tw-gradient-to: rgb(15 29 34 / 0) var(--tw-gradient-to-position) !important; --tw-gradient-stops: var(--tw-gradient-from), #0f1d22 var(--tw-gradient-via-position), var(--tw-gradient-to) !important; }
+html.dark .to-lake-50 { --tw-gradient-to: #102434 var(--tw-gradient-to-position) !important; }
+html.dark .hero-grid { background-image: linear-gradient(rgba(174, 255, 219, .11) 1px, transparent 1px), linear-gradient(90deg, rgba(174, 255, 219, .11) 1px, transparent 1px); }
+
+html.dark .leaflet-container { background: #102127; }
+html.dark .leaflet-tile { filter: brightness(.62) saturate(.72) contrast(.92); }
+html.dark .leaflet-popup-content-wrapper,
+html.dark .leaflet-popup-tip { background: #16282e; color: #edf7f6; }
