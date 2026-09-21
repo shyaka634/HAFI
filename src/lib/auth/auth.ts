@@ -17,7 +17,12 @@ export const auth = betterAuth({
     },
   }),
   emailAndPassword: { enabled: true },
-  session: { expiresIn: 60 * 60 * 24 * 7 },
+  // The session is renewed only while the application confirms user activity.
+  // The shared client guard signs inactive users out after five minutes.
+  session: {
+    expiresIn: 60 * 5,
+    updateAge: 30,
+  },
   user: {
     additionalFields: {
       role: { type: "string", input: false, defaultValue: "USER" },

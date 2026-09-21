@@ -1,14 +1,24 @@
 import { z } from "zod";
 import { isRwandaDistrict, isRwandaProvince } from "@/lib/rwanda";
-import { SERVICE_CATEGORIES } from "@/lib/types";
+import { CATEGORY_VALUE_PATTERN } from "@/features/services/service-categories";
 
 const requiredText = (max: number) => z.string().trim().min(1).max(max);
 const optionalText = (max: number) => z.string().trim().max(max).optional();
+const categoryValueSchema = z.string().trim().regex(CATEGORY_VALUE_PATTERN, "Choose a valid service category.");
 
 const MAX_LOCAL_MEDIA_LENGTH = 12_000_000;
 const MAX_SERVICE_PHOTO_LENGTH = 3_000_000;
 const localImagePattern = /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
 const localVideoPattern = /^data:video\/(mp4|webm|ogg);base64,[A-Za-z0-9+/=]+$/;
+
+function isSafeRemoteImageUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
 
 function isSafeDiscoveryMediaSource(value: string) {
   if (localImagePattern.test(value) || localVideoPattern.test(value)) return value.length <= MAX_LOCAL_MEDIA_LENGTH;
@@ -27,7 +37,7 @@ export const discoveryMediaSourceSchema = z.string().trim().min(1).refine(
 
 export const serviceSearchSchema = z.object({
   name: z.string().trim().max(120).optional(),
-  category: z.enum(SERVICE_CATEGORIES).optional(),
+  category: categoryValueSchema.optional(),
   district: z.string().trim().refine((value) => !value || isRwandaDistrict(value), "Choose a valid district.").optional(),
   lat: z.coerce.number().min(-2.95).max(-1).optional(),
   lng: z.coerce.number().min(28.8).max(30.9).optional(),
@@ -43,7 +53,7 @@ export const submissionSchema = z.object({
     z.string().trim().min(1).optional(),
   ),
   name: requiredText(120),
-  category: z.enum(SERVICE_CATEGORIES),
+  category: categoryValueSchema,
   district: z.string().refine(isRwandaDistrict, "Choose a valid district."),
   sector: optionalText(100),
   address: optionalText(240),
@@ -55,14 +65,18 @@ export const submissionSchema = z.object({
       "Choose a PNG, JPEG, WebP, or GIF image smaller than 2 MB.",
     ).optional(),
   ),
+  photoUrl: z.preprocess(
+    (value) => value === "" ? undefined : value,
+    z.string().trim().refine(isSafeRemoteImageUrl, "Use a valid place photo URL.").optional(),
+  ),
   latitude: z.number().min(-2.95).max(-1),
   longitude: z.number().min(28.8).max(30.9),
   notes: optionalText(1000),
 }).refine((data) => data.type !== "LOCATION_CHANGE" || Boolean(data.targetServiceId), {
   path: ["targetServiceId"],
   message: "Choose the official service that moved.",
-}).refine((data) => data.type === "LOCATION_CHANGE" || Boolean(data.photoBase64), {
-  path: ["photoBase64"],
+}).refine((data) => data.type === "LOCATION_CHANGE" || Boolean(data.photoBase64 || data.photoUrl), {
+  path: ["photoUrl"],
   message: "Add a photo of this place.",
 });
 

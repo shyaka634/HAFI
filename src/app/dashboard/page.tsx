@@ -2,8 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { authClient } from "@/lib/auth/client";
-import type { AppUser } from "@/lib/types";
+import { useAppSession } from "@/providers/session-provider";
 
 const destination = {
   AGENT: "/dashboard/agent",
@@ -14,13 +13,11 @@ const destination = {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { user, isLoading } = useAppSession();
 
   useEffect(() => {
-    authClient.getSession().then(({ data }) => {
-      const user = data?.user as AppUser | undefined;
-      router.replace(user ? destination[user.role] : "/sign-in");
-    });
-  }, [router]);
+    if (!isLoading) router.replace(user ? destination[user.role] : "/sign-in");
+  }, [isLoading, router, user]);
 
   return <main className="grid min-h-[calc(100vh-150px)] place-items-center text-sm font-semibold text-slate-500">Opening your dashboard…</main>;
 }

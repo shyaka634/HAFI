@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- Discovery media is administrator-provided. */
 
 import { cn } from "@/lib/utils";
+import { optimizedImageUrl, type CloudinaryImagePreset } from "@/lib/media-url";
 
 export function isDiscoveryVideo(source: string) {
   if (source.startsWith("data:video/")) return true;
@@ -18,14 +19,16 @@ type DiscoveryMediaProps = {
   alt: string;
   className?: string;
   controls?: boolean;
+  imagePreset?: CloudinaryImagePreset;
+  loading?: "eager" | "lazy";
 };
 
 // A muted loop makes the advert lively without unexpectedly playing sound.
 // "object-fill" makes every video fit the banner space without cropping it.
-export function DiscoveryMedia({ source, alt, className, controls = false }: DiscoveryMediaProps) {
+export function DiscoveryMedia({ source, alt, className, controls = false, imagePreset = "discovery-card", loading = "lazy" }: DiscoveryMediaProps) {
   if (isDiscoveryVideo(source)) {
     return <video aria-label={alt} autoPlay className={cn("object-fill", className)} controls={controls} loop muted playsInline preload="metadata" src={source} />;
   }
 
-  return <img alt={alt} className={cn("object-cover", className)} src={source} />;
+  return <img alt={alt} className={cn("object-cover", className)} decoding="async" loading={loading} src={optimizedImageUrl(source, imagePreset)} />;
 }

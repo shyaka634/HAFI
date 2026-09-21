@@ -10,7 +10,10 @@ export const SERVICE_CATEGORIES = [
   "MARKET",
 ] as const;
 
-export type ServiceCategory = (typeof SERVICE_CATEGORIES)[number];
+export type BuiltInServiceCategory = (typeof SERVICE_CATEGORIES)[number];
+// Super administrators can add further values to the PostgreSQL category enum.
+// Keep this type open so newly-created categories can flow through the app.
+export type ServiceCategory = string;
 export type UserRole = "USER" | "AGENT" | "PROVINCE_MANAGER" | "SUPER_ADMIN";
 export type SubmissionType = "CREATE" | "LOCATION_CHANGE";
 export type SubmissionStatus = "PENDING" | "APPROVED" | "REJECTED";

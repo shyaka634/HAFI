@@ -87,9 +87,20 @@ Your `.env.local` should contain:
 DATABASE_URL="postgresql://USER:PASSWORD@HOST/DATABASE?sslmode=require"
 BETTER_AUTH_SECRET="generate-a-long-random-secret"
 BETTER_AUTH_URL="http://localhost:3000"
+RESEND_API_KEY="re_your_resend_api_key"
+EMAIL_FROM="Hafi <no-reply@your-verified-domain.com>"
+CLOUDINARY_CLOUD_NAME="your_cloud_name"
+CLOUDINARY_API_KEY="your_cloudinary_api_key"
+CLOUDINARY_API_SECRET="your_cloudinary_api_secret"
+UPSTASH_REDIS_REST_URL="https://your-redis-instance.upstash.io"
+UPSTASH_REDIS_REST_TOKEN="your_upstash_redis_rest_token"
 ```
 
 Never commit `.env.local`, database URLs, passwords, or authentication secrets. The included `.gitignore` prevents this by default.
+
+`RESEND_API_KEY` and `EMAIL_FROM` are required for staff email verification. Create the API key in Resend and use a sender address from a domain that you have verified there.
+
+Cloudinary stores new place photos and banner media outside PostgreSQL when its three variables are present. Upstash enables shared rate limits across Vercel function instances when its two variables are present. Until you add them, the app keeps its existing media fallback and does not reject traffic because a limiter is unavailable.
 
 ### 3. Prepare the database
 
@@ -121,6 +132,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run clean` | Removes generated Next.js and TypeScript cache files. |
 | `npm run db:generate` | Creates Drizzle migration files. |
 | `npm run db:migrate` | Applies database migrations. |
+| `npm run db:indexes` | Creates the safe, idempotent production indexes used by search, map, staff, and review queries. |
 
 Run the following before opening a pull request or deploying:
 
@@ -155,7 +167,15 @@ Super administrators can publish top-banner and side-banner discoveries. A disco
 - Images: PNG, JPEG, WebP, or GIF, up to 2 MB
 - Videos: MP4, WebM, or Ogg, up to 8 MB
 
-For production-scale media, use an object storage or media provider such as Cloudinary, Amazon S3, or Cloudflare R2 and save the resulting public URL. This keeps the database fast and avoids storing large media files as data URLs.
+New media uploads use Cloudinary automatically when its environment variables are configured. Existing data URLs continue to work, so no current banner or service photo is lost. Cloudinary uploads return a public HTTPS URL which is stored in the existing media field instead of the Base64 file content.
+
+## Performance and scale
+
+- Public category, discovery, and service search responses use short CDN cache lifetimes.
+- Nearby search first applies a small GPS bounding box in PostgreSQL, then calculates exact distance only for those candidates.
+- `npm run db:indexes` creates idempotent PostgreSQL indexes for service search, map bounds, dashboard, staff, discovery, submission, and audit queries.
+- Upstash rate limits authentication, public APIs, submissions, email-code requests, uploads, and administrator writes once its environment variables are configured.
+- For high public map traffic, configure `NEXT_PUBLIC_MAP_TILE_URL` with a production tile provider that fits your chosen plan.
 
 ## Deployment notes
 

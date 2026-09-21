@@ -7,8 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AccessLoading } from "@/components/access-loading";
 import { DiscoveryMedia, isDiscoveryVideo } from "@/features/discoveries/components/discovery-media";
-import { authClient } from "@/lib/auth/client";
-import type { AppUser } from "@/lib/types";
+import { useAppSession } from "@/providers/session-provider";
 
 type Placement = "TOP" | "TOP_SECONDARY" | "SIDE";
 type Discovery = {
@@ -16,6 +15,8 @@ type Discovery = {
   title: string;
   description: string;
   imageBase64: string;
+  mediaPublicId: string | null;
+  mediaResourceType: "image" | "video" | null;
   link: string | null;
   placement: Placement;
   published: boolean;
@@ -45,8 +46,7 @@ const placementInfo: Record<Placement, { label: string; guide: string; ratio: st
 };
 
 export default function AdminDiscoveriesPage() {
-  const [allowed, setAllowed] = useState(false);
-  const [checkingAccess, setCheckingAccess] = useState(true);
+  const { user, isLoading: checkingAccess } = useAppSession();
   const [items, setItems] = useState<Discovery[]>([]);
   const [editing, setEditing] = useState<Discovery | null>(null);
   const [notice, setNotice] = useState("");
@@ -58,13 +58,8 @@ export default function AdminDiscoveriesPage() {
   }
 
   useEffect(() => {
-    authClient.getSession().then(async ({ data }) => {
-      const user = (data?.user as AppUser | undefined) ?? null;
-      const canManage = user?.role === "SUPER_ADMIN";
-      setAllowed(canManage);
-      if (canManage) await load();
-    }).catch(() => setAllowed(false)).finally(() => setCheckingAccess(false));
-  }, []);
+    if (user?.role === "SUPER_ADMIN") void load();
+  }, [user]);
 
   async function save(form: HTMLFormElement) {
     setSaving(true);
@@ -82,6 +77,8 @@ export default function AdminDiscoveriesPage() {
     // existing local upload, keep its current media unless a replacement is
     // selected or a different URL is entered.
     let mediaUrl = String(data.get("mediaUrl") ?? "").trim() || editing?.imageBase64 || "";
+    let mediaPublicId = editing?.mediaPublicId ?? null;
+    let mediaResourceType = editing?.mediaResourceType ?? null;
 
     if (file instanceof File && file.size > 0) {
       const isImage = ACCEPTED_IMAGE_TYPES.includes(file.type);
@@ -106,7 +103,24 @@ export default function AdminDiscoveriesPage() {
         return;
       }
 
-      mediaUrl = await fileToDataUrl(file);
+      try {
+        // New uploads use Cloudinary when it is configured. During setup, keep
+        // the existing Base64 fallback so administrators are never blocked.
+        const uploaded = await uploadDiscoveryMedia(file);
+        if (uploaded) {
+          mediaUrl = uploaded.url;
+          mediaPublicId = uploaded.publicId;
+          mediaResourceType = uploaded.resourceType;
+        } else {
+          mediaUrl = await fileToDataUrl(file);
+          mediaPublicId = null;
+          mediaResourceType = null;
+        }
+      } catch (reason) {
+        setSaving(false);
+        setNotice(reason instanceof Error ? reason.message : "The banner media could not be uploaded.");
+        return;
+      }
     }
 
     if (!mediaUrl) {
@@ -115,10 +129,18 @@ export default function AdminDiscoveriesPage() {
       return;
     }
 
+    // A manually entered URL is not managed by Hafi's Cloudinary account.
+    if (!(file instanceof File && file.size > 0) && mediaUrl !== editing?.imageBase64) {
+      mediaPublicId = null;
+      mediaResourceType = null;
+    }
+
     const body = {
       title: String(data.get("title") ?? ""),
       description: String(data.get("description") ?? ""),
       imageUrl: mediaUrl,
+      mediaPublicId,
+      mediaResourceType,
       link: String(data.get("link") ?? "") || null,
       placement,
     };
@@ -133,6 +155,7 @@ export default function AdminDiscoveriesPage() {
     setNotice(editing ? "Banner updated." : `${placementInfo[placement].label} published.`);
     setEditing(null);
     form.reset();
+    notifyHeaderBanners();
     load();
   }
 
@@ -144,7 +167,10 @@ export default function AdminDiscoveriesPage() {
     });
     const result = await response.json();
     setNotice(response.ok ? `Banner ${item.published ? "hidden" : "shown"}.` : result.error);
-    if (response.ok) load();
+    if (response.ok) {
+      notifyHeaderBanners();
+      load();
+    }
   }
 
   async function remove(item: Discovery) {
@@ -152,11 +178,14 @@ export default function AdminDiscoveriesPage() {
     const response = await fetch(`/api/discoveries/${item.id}`, { method: "DELETE" });
     const result = await response.json();
     setNotice(response.ok ? "Banner deleted." : result.error);
-    if (response.ok) load();
+    if (response.ok) {
+      notifyHeaderBanners();
+      load();
+    }
   }
 
   if (checkingAccess) return <AccessLoading />;
-  if (!allowed) return <Access />;
+  if (user?.role !== "SUPER_ADMIN") return <Access />;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -206,7 +235,7 @@ export default function AdminDiscoveriesPage() {
       <div className="mt-8 grid gap-5 md:grid-cols-2">
         {items.map((item) => <Card className="overflow-hidden" key={item.id}>
           <div className="flex gap-4 p-4">
-            <div className="h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-slate-100"><DiscoveryMedia alt="" className="h-full w-full" source={item.imageBase64} /></div>
+            <div className="h-20 w-28 shrink-0 overflow-hidden rounded-lg bg-slate-100"><DiscoveryMedia alt="" className="h-full w-full" imagePreset="discovery-admin" source={item.imageBase64} /></div>
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="truncate font-extrabold text-ink">{item.title}</p><span className="rounded-full bg-forest-50 px-2 py-1 text-[10px] font-bold text-forest-700">{placementInfo[item.placement].label}</span>{isDiscoveryVideo(item.imageBase64) && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-lake-50 px-2 py-1 text-[10px] font-bold text-lake-600"><Video className="h-3 w-3" />Video</span>}</div><p className="mt-1 max-h-10 overflow-hidden text-sm leading-5 text-slate-500">{item.description}</p></div>
@@ -261,6 +290,21 @@ function fileToDataUrl(file: File) {
     reader.onerror = () => reject(new Error("The selected media could not be read."));
     reader.readAsDataURL(file);
   });
+}
+
+async function uploadDiscoveryMedia(file: File): Promise<{ url: string; publicId: string; resourceType: "image" | "video" } | null> {
+  const form = new FormData();
+  form.set("kind", "discovery");
+  form.set("file", file);
+  const response = await fetch("/api/media/upload", { method: "POST", body: form });
+  const data = await response.json().catch(() => null);
+  if (response.ok && typeof data?.url === "string" && typeof data?.publicId === "string" && (data?.resourceType === "image" || data?.resourceType === "video")) return data;
+  if (data?.code === "MEDIA_STORAGE_NOT_CONFIGURED") return null;
+  throw new Error(data?.error ?? "The banner media could not be uploaded.");
+}
+
+function notifyHeaderBanners() {
+  window.dispatchEvent(new Event("hafi:discoveries-updated"));
 }
 
 function Access() {

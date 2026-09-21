@@ -5,8 +5,7 @@ import { History, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AccessLoading } from "@/components/access-loading";
-import { authClient } from "@/lib/auth/client";
-import type { AppUser } from "@/lib/types";
+import { useAppSession } from "@/providers/session-provider";
 
 type Event = {
   id: string;
@@ -99,8 +98,7 @@ function ActivityCard({ event }: { event: Event }) {
   );
 }
 export default function ActivityPage() {
-  const [allowed, setAllowed] = useState(false);
-  const [checkingAccess, setCheckingAccess] = useState(true);
+  const { user, isLoading: checkingAccess } = useAppSession();
   const [events, setEvents] = useState<Event[]>([]);
   const [amount, setAmount] = useState("30");
   const [unit, setUnit] = useState<CleanupUnit>("days");
@@ -108,17 +106,12 @@ export default function ActivityPage() {
   const [cleanupMessage, setCleanupMessage] = useState("");
 
   useEffect(() => {
-    authClient.getSession().then(async ({ data }) => {
-      const user = (data?.user as AppUser | undefined) ?? null;
-      const canView = user?.role === "SUPER_ADMIN";
-      setAllowed(canView);
-
-      if (canView) {
-        const response = await fetch("/api/audit");
+    if (user?.role === "SUPER_ADMIN") {
+      fetch("/api/audit").then(async (response) => {
         if (response.ok) setEvents(await response.json());
-      }
-    }).catch(() => setAllowed(false)).finally(() => setCheckingAccess(false));
-  }, []);
+      }).catch(() => {});
+    }
+  }, [user]);
 
   async function deleteOlderHistory() {
     const numericAmount = Number(amount);
@@ -158,7 +151,7 @@ export default function ActivityPage() {
   }
 
   if (checkingAccess) return <AccessLoading />;
-  if (!allowed) return <Access />;
+  if (user?.role !== "SUPER_ADMIN") return <Access />;
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6">

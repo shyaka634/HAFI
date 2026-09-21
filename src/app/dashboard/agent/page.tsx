@@ -5,27 +5,25 @@ import { useEffect, useState } from "react";
 import { ClipboardList, MapPinPlus, Send, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { authClient } from "@/lib/auth/client";
-import type { AppUser } from "@/lib/types";
+import { AccessLoading } from "@/components/access-loading";
+import { useAppSession } from "@/providers/session-provider";
 
 type Submission = { id: string; name: string; status: "PENDING" | "APPROVED" | "REJECTED"; createdAt: string };
 
 export default function AgentDashboardPage() {
-  const [user, setUser] = useState<AppUser | null>(null);
+  const { user, isLoading } = useAppSession();
   const [submissions, setSubmissions] = useState<Submission[]>([]);
 
   useEffect(() => {
-    authClient.getSession().then(async ({ data }) => {
-      const current = (data?.user as AppUser | undefined) ?? null;
-      setUser(current);
-      if (current?.role === "AGENT") {
-        const response = await fetch("/api/submissions");
+    if (user?.role === "AGENT") {
+      fetch("/api/submissions").then(async (response) => {
         if (response.ok) setSubmissions(await response.json());
-      }
-    });
-  }, []);
+      }).catch(() => {});
+    }
+  }, [user]);
 
-  if (user && user.role !== "AGENT") return <AccessMessage title="Agent access required" />;
+  if (isLoading) return <AccessLoading />;
+  if (user?.role !== "AGENT") return <AccessMessage title="Agent access required" />;
   const pending = submissions.filter((item) => item.status === "PENDING").length;
   const approved = submissions.filter((item) => item.status === "APPROVED").length;
 

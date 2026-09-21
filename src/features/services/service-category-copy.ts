@@ -1,8 +1,8 @@
-import type { ServiceCategory } from "@/lib/types";
+import type { BuiltInServiceCategory, ServiceCategory } from "@/lib/types";
 
 type Locale = "en" | "rw";
 
-export const serviceCategoryCopy: Record<ServiceCategory, Record<Locale, { name: string; description: string }>> = {
+export const serviceCategoryCopy: Record<BuiltInServiceCategory, Record<Locale, { name: string; description: string }>> = {
   HOSPITAL: { en: { name: "Hospitals", description: "Health care and clinics" }, rw: { name: "Ibitaro", description: "Serivisi z'ubuvuzi n'amavuriro" } },
   PHARMACY: { en: { name: "Pharmacies", description: "Medicine and health supplies" }, rw: { name: "Farumasi", description: "Imiti n'ibikoresho by'ubuvuzi" } },
   RESTAURANT: { en: { name: "Restaurants", description: "Food and dining" }, rw: { name: "Resitora", description: "Amafunguro n'ubusabane" } },
@@ -14,6 +14,20 @@ export const serviceCategoryCopy: Record<ServiceCategory, Record<Locale, { name:
   SHOP: { en: { name: "Shops", description: "Local stores and businesses" }, rw: { name: "Amaduka", description: "Amaduka n'ubucuruzi bwo mu gace" } },
 };
 
+function fallbackLabel(category: ServiceCategory) {
+  return category
+    .toLowerCase()
+    .split("_")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export function categoryLabel(category: ServiceCategory, locale: Locale) {
-  return serviceCategoryCopy[category][locale].name;
+  return serviceCategoryCopy[category as BuiltInServiceCategory]?.[locale].name ?? fallbackLabel(category);
+}
+
+export function categoryDescription(category: ServiceCategory, locale: Locale) {
+  return serviceCategoryCopy[category as BuiltInServiceCategory]?.[locale].description
+    ?? (locale === "rw" ? "Serivisi z'ingenzi zo mu gace" : "Trusted local services");
 }

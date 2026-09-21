@@ -2,17 +2,17 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { ArrowUpRight, BedDouble, Building2, Crosshair, HeartPulse, Landmark, Map, Pill, Search, ShoppingBag, Sparkles, UtensilsCrossed, Wrench } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowUpRight, BedDouble, Building2, Crosshair, HeartPulse, Landmark, Map, Pill, Search, ShoppingBag, Sparkles, Tag, UtensilsCrossed, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { RWANDA_DISTRICTS } from "@/lib/rwanda";
-import type { ServiceCategory } from "@/lib/types";
+import { SERVICE_CATEGORIES, type ServiceCategory } from "@/lib/types";
 import { useLocale } from "@/providers/locale-provider";
 import { ServiceCard } from "@/features/services/components/service-card";
 import { DiscoveryMedia } from "@/features/discoveries/components/discovery-media";
-import { serviceCategoryCopy } from "@/features/services/service-category-copy";
+import { categoryDescription, categoryLabel } from "@/features/services/service-category-copy";
 import type { Service, ServiceRoute } from "@/features/services/types/service";
 
 const ServiceMap = dynamic(() => import("@/features/services/components/service-map").then((module) => module.ServiceMap), { ssr: false, loading: () => <div className="h-full animate-pulse bg-slate-100" /> });
@@ -49,9 +49,19 @@ export function ServiceExplorer() {
   const [nearbySearch, setNearbySearch] = useState(false);
   const [discoveries, setDiscoveries] = useState<Discovery[]>([]);
   const [discoveriesLoading, setDiscoveriesLoading] = useState(true);
+  const [categories, setCategories] = useState<string[]>([...SERVICE_CATEGORIES]);
 
   useEffect(() => {
     fetch("/api/discoveries?placement=SIDE").then((response) => response.ok ? response.json() : []).then((items: Discovery[]) => setDiscoveries(items)).catch(() => setDiscoveries([])).finally(() => setDiscoveriesLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data: { categories?: string[] } | null) => {
+        if (data?.categories?.length) setCategories(data.categories);
+      })
+      .catch(() => {});
   }, []);
 
   async function search(next: SearchOptions = {}, coordinates = location) {
@@ -84,19 +94,19 @@ export function ServiceExplorer() {
   return <>
     <section
       className="relative overflow-hidden bg-forest-900 bg-cover bg-center text-white"
-      style={{ backgroundImage: "linear-gradient(120deg, rgba(2, 44, 34, 0.46), rgba(4, 78, 56, 0.28)), url('/images/rwanda-services-map-background.png')" }}
+      style={{ backgroundImage: "linear-gradient(120deg, rgba(7, 93, 59, 0.20), rgba(23, 145, 98, 0.12)), url('/images/rwanda-services-map-background.png')" }}
     >
       <div className="relative mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-9 lg:px-8">
-        <Card className="p-4 shadow-lift sm:p-5">
-          <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-ink"><Search className="h-4 w-4 text-forest-700" />{copy.searchTitle}</div>
+        <Card className="p-5 shadow-lift sm:p-6">
+          <div className="mb-4 flex items-center gap-2 text-base font-extrabold text-ink sm:text-lg"><Search className="h-5 w-5 text-forest-700" />{copy.searchTitle}</div>
           <form className="grid gap-3 lg:grid-cols-[minmax(220px,1.55fr)_auto_1fr_1fr_auto]" onSubmit={(event) => { event.preventDefault(); search(); }}>
-            <div className="relative"><Search className="pointer-events-none absolute left-3 top-3.5 h-4 w-4 text-slate-400" /><Input className="pl-10" onChange={(event) => setName(event.target.value)} placeholder={copy.searchPlaceholder} value={name} /></div>
-            <Button className="whitespace-nowrap" disabled={searching} onClick={useLocation} type="button" variant="secondary"><Crosshair className="h-4 w-4" />{copy.useLocation}</Button>
-            <select className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 outline-none focus:border-forest-500 focus:ring-4 focus:ring-forest-50" onChange={(event) => setCategory(event.target.value as ServiceCategory | "")} value={category}><option value="">{copy.allCategories}</option>{quickCategories.map((item) => <option key={item.value} value={item.value}>{serviceCategoryCopy[item.value][locale].name}</option>)}</select>
-            <select className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-600 outline-none focus:border-forest-500 focus:ring-4 focus:ring-forest-50" onChange={(event) => setDistrict(event.target.value)} value={district}><option value="">{copy.allDistricts}</option>{RWANDA_DISTRICTS.map((item) => <option key={item}>{item}</option>)}</select>
-            <Button disabled={searching} type="submit"><Search className="h-4 w-4" />{searching ? copy.searching : copy.search}</Button>
+            <div className="relative"><Search className="pointer-events-none absolute left-4 top-3.5 h-5 w-5 text-slate-400" /><Input className="h-12 pl-11 text-base" onChange={(event) => setName(event.target.value)} placeholder={copy.searchPlaceholder} value={name} /></div>
+            <Button className="whitespace-nowrap" disabled={searching} onClick={useLocation} size="lg" type="button" variant="secondary"><Crosshair className="h-5 w-5" />{copy.useLocation}</Button>
+            <select className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-base font-medium text-slate-600 outline-none focus:border-forest-500 focus:ring-4 focus:ring-forest-50" onChange={(event) => setCategory(event.target.value as ServiceCategory | "")} value={category}><option value="">{copy.allCategories}</option>{categories.map((value) => <option key={value} value={value}>{categoryLabel(value, locale)}</option>)}</select>
+            <select className="h-12 rounded-xl border border-slate-200 bg-white px-4 text-base font-medium text-slate-600 outline-none focus:border-forest-500 focus:ring-4 focus:ring-forest-50" onChange={(event) => setDistrict(event.target.value)} value={district}><option value="">{copy.allDistricts}</option>{RWANDA_DISTRICTS.map((item) => <option key={item}>{item}</option>)}</select>
+            <Button disabled={searching} size="lg" type="submit"><Search className="h-5 w-5" />{searching ? copy.searching : copy.search}</Button>
           </form>
-          <p className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-400">{copy.locationHint}</p>
+          <p className="mt-4 border-t border-slate-100 pt-4 text-sm text-slate-400">{copy.locationHint}</p>
           {error && <p className="mt-3 text-sm font-semibold text-red-600">{error}</p>}
         </Card>
 
@@ -104,8 +114,7 @@ export function ServiceExplorer() {
           <section>
             <p className="text-sm font-bold uppercase tracking-widest text-forest-100">{copy.browse}</p>
             <h1 className="mt-2 text-3xl font-extrabold text-white sm:text-4xl">{copy.categoryHeading}</h1>
-            <p className="mt-2 text-sm leading-6 text-forest-50">{copy.categoryHint}</p>
-            <div className="mt-6 space-y-3">{quickCategories.map(({ value, icon: Icon }) => <button className="group flex w-full items-center gap-4 rounded-2xl border border-white/20 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-forest-200 hover:shadow-soft" key={value} onClick={() => { setCategory(value); search({ category: value }); }}><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-forest-50 text-forest-700 transition group-hover:bg-forest-600 group-hover:text-white"><Icon className="h-5 w-5" /></span><span><span className="block font-extrabold text-ink">{serviceCategoryCopy[value][locale].name}</span><span className="mt-0.5 block text-sm text-slate-500">{serviceCategoryCopy[value][locale].description}</span></span><ArrowUpRight className="ml-auto h-4 w-4 text-slate-300 transition group-hover:text-forest-600" /></button>)}</div>
+            <div className="mt-6 space-y-3">{categories.map((value) => { const Icon = quickCategories.find((item) => item.value === value)?.icon ?? Tag; return <button className="group flex w-full items-center gap-4 rounded-2xl border border-white/20 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:border-forest-200 hover:shadow-soft" key={value} onClick={() => { setCategory(value); search({ category: value }); }}><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-forest-50 text-forest-700 transition group-hover:bg-forest-600 group-hover:text-white"><Icon className="h-5 w-5" /></span><span><span className="block font-extrabold text-ink">{categoryLabel(value, locale)}</span><span className="mt-0.5 block text-sm text-slate-500">{categoryDescription(value, locale)}</span></span><ArrowUpRight className="ml-auto h-4 w-4 text-slate-300 transition group-hover:text-forest-600" /></button>; })}</div>
           </section>
           <DiscoveryRail copy={copy} items={discoveries} loading={discoveriesLoading} />
         </div>}
@@ -150,11 +159,37 @@ function SearchResultsPane({ copy, locale, nearbySearch, results, location, onSt
             <p className="flex items-center gap-2 font-extrabold text-ink"><Map className="h-4 w-4 text-forest-600" />{copy.mapView}</p>
             <p className="mt-0.5 text-xs text-slate-500">{copy.mapHint}</p>
           </div>
-          <ServiceMap route={route} services={results} userLocation={location} />
+          <DeferredServiceMap route={route} services={results} userLocation={location} />
         </div>
       </section>
     </main>
   );
+}
+
+function DeferredServiceMap({ route, services, userLocation }: { route: ServiceRoute | null; services: Service[]; userLocation: { lat: number; lng: number } | null }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    const element = containerRef.current;
+    if (!element || shouldLoad) return;
+    if (!("IntersectionObserver" in window)) {
+      setShouldLoad(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      setShouldLoad(true);
+      observer.disconnect();
+    }, { rootMargin: "240px" });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [shouldLoad]);
+
+  return <div className="h-full w-full" ref={containerRef}>
+    {shouldLoad ? <ServiceMap route={route} services={services} userLocation={userLocation} /> : <div aria-live="polite" className="grid h-full place-items-center bg-slate-100 text-sm font-bold text-slate-500">Loading map…</div>}
+  </div>;
 }
 
 function DiscoveryRail({ copy, items, loading }: { copy: (typeof homeCopy)["en"] | (typeof homeCopy)["rw"]; items: Discovery[]; loading: boolean }) {
@@ -162,13 +197,10 @@ function DiscoveryRail({ copy, items, loading }: { copy: (typeof homeCopy)["en"]
     <aside>
       <div className="flex items-end justify-between gap-4">
         <div>
-          <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-forest-100"><Sparkles className="h-4 w-4" />{copy.discoveries}</p>
-          <h2 className="mt-2 text-2xl font-extrabold text-white">{copy.offers}</h2>
+          <h2 className="text-2xl font-extrabold text-white">{copy.offers}</h2>
         </div>
-        <Link className="text-sm font-bold text-forest-700 hover:underline" href="/discoveries">{copy.viewAll}</Link>
+        <Link className="text-sm font-bold text-white hover:text-white hover:underline" href="/discoveries">{copy.viewAll}</Link>
       </div>
-      <p className="mt-2 text-sm leading-6 text-forest-50">{copy.discoveryHint}</p>
-
       <div className="mt-5 space-y-5">
         {loading ? [1, 2, 3].map((item) => <div className="aspect-[16/7] animate-pulse rounded-2xl bg-slate-200" key={item} />) : null}
         {!loading && items.length ? items.slice(0, 3).map((item) => {
@@ -183,7 +215,7 @@ function DiscoveryRail({ copy, items, loading }: { copy: (typeof homeCopy)["en"]
               rel={item.link ? "noreferrer" : undefined}
               target={item.link ? "_blank" : undefined}
             >
-              <DiscoveryMedia alt="" className="absolute inset-0 h-full w-full opacity-90 transition duration-500 group-hover:scale-105 group-hover:opacity-100" source={item.imageBase64} />
+              <DiscoveryMedia alt="" className="absolute inset-0 h-full w-full object-fill opacity-90 transition duration-500 group-hover:opacity-100" imagePreset="side-banner" source={item.imageBase64} />
               {hasBannerCopy ? <>
                 <span className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/35 to-transparent" />
                 <span className="absolute inset-x-0 bottom-0 p-5 text-white">

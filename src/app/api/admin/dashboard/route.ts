@@ -4,8 +4,11 @@ import { db } from "@/lib/db";
 import { serviceSubmissions, users } from "@/lib/db/schema";
 import { getCurrentUser } from "@/lib/auth/session";
 import { isSuperAdmin } from "@/lib/permissions";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
-export async function GET() {
+export async function GET(request: Request) {
+  const limited = await enforceRateLimit(request, "admin");
+  if (limited) return limited;
   const user = await getCurrentUser();
   if (!isSuperAdmin(user)) return NextResponse.json({ error: "Super administrator access required." }, { status: 403 });
 

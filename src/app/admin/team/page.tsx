@@ -1,15 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { Archive, ChevronDown, MapPinned, ShieldCheck, UserMinus, UserPlus, UserRoundCog, UsersRound } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Archive, ChevronDown, MailCheck, MapPinned, ShieldCheck, UserMinus, UserPlus, UserRoundCog, UsersRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AccessLoading } from "@/components/access-loading";
-import { authClient } from "@/lib/auth/client";
 import { RWANDA_DISTRICTS, RWANDA_PROVINCES } from "@/lib/rwanda";
-import type { AppUser } from "@/lib/types";
+import { useAppSession } from "@/providers/session-provider";
 
 type Role = "USER" | "AGENT" | "PROVINCE_MANAGER" | "SUPER_ADMIN";
 type Member = {
@@ -22,12 +21,14 @@ type Member = {
 };
 
 export default function TeamPage() {
-  const [allowed, setAllowed] = useState(false);
-  const [checkingAccess, setCheckingAccess] = useState(true);
+  const { user, isLoading: checkingAccess } = useAppSession();
   const [members, setMembers] = useState<Member[]>([]);
   const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState<string | null>(null);
   const [deactivatingId, setDeactivatingId] = useState<string | null>(null);
+  const [openSection, setOpenSection] = useState<"agents" | "managers" | null>(null);
+  const createFormRef = useRef<HTMLFormElement>(null);
 
   async function load() {
     const response = await fetch("/api/admin/users");
@@ -35,12 +36,12 @@ export default function TeamPage() {
   }
 
   useEffect(() => {
-    authClient.getSession().then(async ({ data }) => {
-      const user = (data?.user as AppUser | undefined) ?? null;
-      const canManage = user?.role === "SUPER_ADMIN";
-      setAllowed(canManage);
-      if (canManage) await load();
-    }).catch(() => setAllowed(false)).finally(() => setCheckingAccess(false));
+    if (user?.role === "SUPER_ADMIN") void load();
+  }, [user]);
+
+  useEffect(() => {
+    const section = new URLSearchParams(window.location.search).get("section");
+    setOpenSection(section === "agents" || section === "managers" ? section : null);
   }, []);
 
   async function createAccount(form: HTMLFormElement) {
@@ -58,8 +59,40 @@ export default function TeamPage() {
     setNotice(response.ok ? role === "SUPER_ADMIN" ? "Super administrator account created. They can sign in to access all shared records, manager and agent changes, and activity history." : "Staff account created. Give the staff member their email and temporary password." : result.error);
     if (response.ok) {
       form.reset();
+      setVerificationEmail(null);
       await load();
     }
+  }
+
+  async function requestVerificationCode(form: HTMLFormElement) {
+    setSaving(true);
+    setNotice("");
+    const values = Object.fromEntries(new FormData(form));
+    const response = await fetch("/api/admin/users/verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(values),
+    });
+    const result = await response.json().catch(() => ({}));
+    setSaving(false);
+
+    if (!response.ok) {
+      setNotice(result.error ?? "The verification code could not be sent.");
+      return;
+    }
+
+    const email = typeof values.email === "string" ? values.email.trim().toLowerCase() : "";
+    setVerificationEmail(email);
+    setNotice(`A six-digit verification code was sent to ${email}. It expires in 10 minutes.`);
+  }
+
+  async function submitCreateForm(form: HTMLFormElement) {
+    const email = String(new FormData(form).get("email") ?? "").trim().toLowerCase();
+    if (verificationEmail !== email) {
+      await requestVerificationCode(form);
+      return;
+    }
+    await createAccount(form);
   }
 
   async function saveAssignment(member: Member, form: HTMLFormElement) {
@@ -103,7 +136,7 @@ export default function TeamPage() {
   }
 
   if (checkingAccess) return <AccessLoading />;
-  if (!allowed) return <Access />;
+  if (user?.role !== "SUPER_ADMIN") return <Access />;
 
   const agents = members.filter((member) => member.role === "AGENT").sort((first, second) => `${first.district ?? ""}-${first.name ?? first.email}`.localeCompare(`${second.district ?? ""}-${second.name ?? second.email}`));
   const managers = members.filter((member) => member.role === "PROVINCE_MANAGER").sort((first, second) => `${first.province ?? ""}-${first.name ?? first.email}`.localeCompare(`${second.province ?? ""}-${second.name ?? second.email}`));
@@ -124,12 +157,12 @@ export default function TeamPage() {
       <Card className="mt-8 p-5 sm:p-6">
         <div className="flex items-start gap-3">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-forest-50 text-forest-700"><UserPlus className="h-5 w-5" /></span>
-          <div><h2 className="font-extrabold text-ink">Create a team account</h2><p className="mt-1 text-sm text-slate-500">Only a super administrator can create agents, managers, and other super administrators.</p></div>
+          <div><h2 className="font-extrabold text-ink">Create a team account</h2><p className="mt-1 text-sm text-slate-500">Only a super administrator can create agents, managers, and other super administrators. The recipient must confirm their email with a code before the account is created.</p></div>
         </div>
 
-        <form className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3" onSubmit={(event) => { event.preventDefault(); createAccount(event.currentTarget); }}>
+        <form className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3" onSubmit={(event) => { event.preventDefault(); submitCreateForm(event.currentTarget); }} ref={createFormRef}>
           <Input name="name" placeholder="Full name" required />
-          <Input name="email" placeholder="Email address" required type="email" />
+          <Input name="email" onChange={() => setVerificationEmail(null)} placeholder="Email address" required type="email" />
           <Input minLength={8} name="password" placeholder="Temporary password (8+ characters)" required type="password" />
           <select className="h-11 rounded-xl border bg-white px-3 text-sm" defaultValue="AGENT" name="role">
             <option value="AGENT">District agent</option>
@@ -144,22 +177,24 @@ export default function TeamPage() {
             <option value="">Province (required for managers)</option>
             {Object.keys(RWANDA_PROVINCES).map((province) => <option key={province}>{province}</option>)}
           </select>
+          {verificationEmail ? <Input autoComplete="one-time-code" inputMode="numeric" maxLength={6} name="verificationCode" pattern="[0-9]{6}" placeholder="Six-digit email code" required /> : null}
           <div className="md:col-span-2 xl:col-span-3">
             <p className="mb-3 flex items-start gap-2 text-xs leading-5 text-slate-500"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-forest-700" />A super administrator does not need a district or province. They receive the same full access to current and historical manager and agent work.</p>
-            <Button disabled={saving} type="submit"><UserPlus className="h-4 w-4" />{saving ? "Creating account..." : "Create account"}</Button>
+            {verificationEmail ? <div className="flex flex-wrap items-center gap-3"><Button disabled={saving} type="submit"><UserPlus className="h-4 w-4" />{saving ? "Creating account..." : "Create verified account"}</Button><Button disabled={saving} onClick={() => { if (createFormRef.current) requestVerificationCode(createFormRef.current); }} type="button" variant="secondary"><MailCheck className="h-4 w-4" />Resend code</Button><span className="text-xs font-medium text-slate-500">Code sent to {verificationEmail}</span></div> : <Button disabled={saving} type="submit"><MailCheck className="h-4 w-4" />{saving ? "Sending code..." : "Send verification code"}</Button>}
           </div>
         </form>
       </Card>
 
-      <div className="mt-8 grid gap-6 xl:grid-cols-2">
-        <StaffDirectoryCard deactivatingId={deactivatingId} icon={MapPinned} members={agents} onDeactivate={deactivateMember} onSave={saveAssignment} territory="district" title="District agents" />
-        <StaffDirectoryCard deactivatingId={deactivatingId} icon={UserRoundCog} members={managers} onDeactivate={deactivateMember} onSave={saveAssignment} territory="province" title="Province managers" />
+      <div className="mt-8 grid gap-6 xl:grid-cols-2" id="staff-directory">
+        <StaffDirectoryCard defaultOpen={openSection === "agents"} deactivatingId={deactivatingId} icon={MapPinned} members={agents} onDeactivate={deactivateMember} onSave={saveAssignment} territory="district" title="Registered agents" />
+        <StaffDirectoryCard defaultOpen={openSection === "managers"} deactivatingId={deactivatingId} icon={UserRoundCog} members={managers} onDeactivate={deactivateMember} onSave={saveAssignment} territory="province" title="Registered managers" />
       </div>
     </div>
   );
 }
 
-function StaffDirectoryCard({ deactivatingId, icon: Icon, members, onDeactivate, onSave, territory, title }: {
+function StaffDirectoryCard({ defaultOpen, deactivatingId, icon: Icon, members, onDeactivate, onSave, territory, title }: {
+  defaultOpen: boolean;
   deactivatingId: string | null;
   icon: typeof MapPinned;
   members: Member[];
@@ -178,7 +213,7 @@ function StaffDirectoryCard({ deactivatingId, icon: Icon, members, onDeactivate,
 
   return (
     <Card className="overflow-hidden">
-      <details className="group">
+      <details className="group" open={defaultOpen}>
         <summary className="flex cursor-pointer list-none items-start justify-between gap-4 p-5 sm:p-6 [&::-webkit-details-marker]:hidden">
           <div className="flex items-start gap-3">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-forest-50 text-forest-700">

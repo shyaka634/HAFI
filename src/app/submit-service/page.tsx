@@ -5,8 +5,9 @@ import { ImagePlus, MapPinPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { authClient } from "@/lib/auth/client";
-import { SERVICE_CATEGORIES, type AppUser, type ServiceCategory } from "@/lib/types";
+import { SERVICE_CATEGORIES, type ServiceCategory } from "@/lib/types";
+import { categoryLabel } from "@/features/services/service-category-copy";
+import { useAppSession } from "@/providers/session-provider";
 
 const initialForm = {
   type: "CREATE" as "CREATE" | "LOCATION_CHANGE",
@@ -27,26 +28,27 @@ const MAX_PLACE_PHOTO_BYTES = 2 * 1024 * 1024;
 const ACCEPTED_PLACE_PHOTO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
 export default function SubmitServicePage() {
-  const [user, setUser] = useState<AppUser | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoading } = useAppSession();
   const [form, setForm] = useState(initialForm);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [photoName, setPhotoName] = useState("");
   const [photoInputKey, setPhotoInputKey] = useState(0);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [categories, setCategories] = useState<string[]>([...SERVICE_CATEGORIES]);
 
   useEffect(() => {
-    authClient.getSession().then(({ data }) => {
-      const current = (data?.user as AppUser | undefined) ?? null;
-      setUser(current);
+    if (user?.district) setForm((value) => ({ ...value, district: user.district! }));
+  }, [user]);
 
-      if (current?.district) {
-        setForm((value) => ({ ...value, district: current.district! }));
-      }
-
-      setIsLoading(false);
-    });
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data: { categories?: string[] } | null) => {
+        if (data?.categories?.length) setCategories(data.categories);
+      })
+      .catch(() => {});
   }, []);
 
   function update(key: keyof typeof form, value: string) {
@@ -80,6 +82,7 @@ export default function SubmitServicePage() {
     if (!file) {
       setForm((current) => ({ ...current, photoBase64: "" }));
       setPhotoName("");
+      setPhotoFile(null);
       return;
     }
 
@@ -99,6 +102,7 @@ export default function SubmitServicePage() {
       const photoBase64 = await fileToDataUrl(file);
       setForm((current) => ({ ...current, photoBase64 }));
       setPhotoName(file.name);
+      setPhotoFile(file);
     } catch {
       setError("The photo could not be read. Please choose another image.");
     }
@@ -111,11 +115,26 @@ export default function SubmitServicePage() {
     setNotice("");
 
     try {
+      let photoUrl = "";
+      if (photoFile) {
+        const media = new FormData();
+        media.set("kind", "service");
+        media.set("file", photoFile);
+        const uploadResponse = await fetch("/api/media/upload", { method: "POST", body: media });
+        const upload = await uploadResponse.json().catch(() => null);
+        if (uploadResponse.ok && typeof upload?.url === "string") photoUrl = upload.url;
+        else if (upload?.code !== "MEDIA_STORAGE_NOT_CONFIGURED") {
+          setError(upload?.error ?? "Your place photo could not be uploaded. Please try again.");
+          return;
+        }
+      }
       const response = await fetch("/api/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
+          photoBase64: photoUrl ? "" : form.photoBase64,
+          photoUrl: photoUrl || undefined,
           latitude: Number(form.latitude),
           longitude: Number(form.longitude),
         }),
@@ -130,6 +149,7 @@ export default function SubmitServicePage() {
       setNotice("Your update is waiting for your province manager's review.");
       setForm({ ...initialForm, district: user?.district ?? "" });
       setPhotoName("");
+      setPhotoFile(null);
       setPhotoInputKey((current) => current + 1);
     } catch {
       setError("Your update could not be submitted. Please check your connection and try again.");
@@ -168,7 +188,7 @@ export default function SubmitServicePage() {
           </Field>
           <Field label="Service category">
             <select value={form.category} onChange={(event) => update("category", event.target.value)} className="h-11 w-full rounded-xl border bg-white px-3 text-sm">
-              {SERVICE_CATEGORIES.map((category) => <option key={category}>{category}</option>)}
+              {categories.map((category) => <option key={category} value={category}>{categoryLabel(category, "en")}</option>)}
             </select>
           </Field>
           {form.type === "LOCATION_CHANGE" && (

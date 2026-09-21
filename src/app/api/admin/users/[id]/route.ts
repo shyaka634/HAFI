@@ -7,8 +7,11 @@ import { isSuperAdmin } from "@/lib/permissions";
 import { provinceForDistrict } from "@/lib/rwanda";
 import { createId } from "@/lib/utils";
 import { staffAssignmentSchema } from "@/lib/validation";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  const limited = await enforceRateLimit(request, "admin");
+  if (limited) return limited;
   const actor = await getCurrentUser();
   if (!isSuperAdmin(actor)) return NextResponse.json({ error: "Super administrator access required." }, { status: 403 });
   const parsed = staffAssignmentSchema.safeParse(await request.json().catch(() => null));
@@ -41,7 +44,9 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const limited = await enforceRateLimit(request, "admin");
+  if (limited) return limited;
   const actor = await getCurrentUser();
   if (!isSuperAdmin(actor)) return NextResponse.json({ error: "Super administrator access required." }, { status: 403 });
 
@@ -73,6 +78,8 @@ export async function DELETE(_request: NextRequest, { params }: { params: { id: 
 }
 
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+  const limited = await enforceRateLimit(request, "admin");
+  if (limited) return limited;
   const actor = await getCurrentUser();
   if (!isSuperAdmin(actor)) return NextResponse.json({ error: "Super administrator access required." }, { status: 403 });
   const body = await request.json().catch(() => null);

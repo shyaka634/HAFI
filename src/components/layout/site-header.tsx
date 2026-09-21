@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, Globe2, Menu, Moon, Sparkles, Sun, X } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
 import { BrandMark } from "@/components/brand-mark";
-import type { AppUser } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { DiscoveryMedia } from "@/features/discoveries/components/discovery-media";
 import { useLocale } from "@/providers/locale-provider";
+import { useAppSession } from "@/providers/session-provider";
 
 type HeaderDiscovery = {
   id: string;
@@ -23,28 +23,51 @@ type TopPlacement = "TOP" | "TOP_SECONDARY";
 
 export function SiteHeader() {
   const { locale, setLocale, t } = useLocale();
-  const [user, setUser] = useState<AppUser | null>(null);
+  const { clearSession, user } = useAppSession();
   const [open, setOpen] = useState(false);
   const [navigationVisible, setNavigationVisible] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [topBanners, setTopBanners] = useState<Record<TopPlacement, HeaderDiscovery | null>>({ TOP: null, TOP_SECONDARY: null });
+  const [topBanners, setTopBanners] = useState<Record<TopPlacement, HeaderDiscovery[]>>({ TOP: [], TOP_SECONDARY: [] });
+  const [rightBannerIndex, setRightBannerIndex] = useState(0);
 
-  useEffect(() => {
-    authClient.getSession()
-      .then(({ data }) => setUser((data?.user as AppUser | undefined) ?? null))
-      .catch(() => {});
+  const loadTopBanners = useCallback(async (fresh = false) => {
+    const refreshQuery = fresh ? `&refresh=${Date.now()}` : "";
+    try {
+      const entries = await Promise.all(
+        (["TOP", "TOP_SECONDARY"] as const).map(async (placement) => {
+          const response = await fetch(`/api/discoveries?placement=${placement}${refreshQuery}`, fresh ? { cache: "no-store" } : undefined);
+          const items = response.ok ? await response.json() as HeaderDiscovery[] : [];
+          return [placement, items] as const;
+        }),
+      );
+      setTopBanners(Object.fromEntries(entries) as Record<TopPlacement, HeaderDiscovery[]>);
+    } catch {
+      setTopBanners({ TOP: [], TOP_SECONDARY: [] });
+    }
   }, []);
 
   useEffect(() => {
-    Promise.all(
-      (["TOP", "TOP_SECONDARY"] as const).map(async (placement) => {
-        const response = await fetch(`/api/discoveries?placement=${placement}`);
-        const items = response.ok ? await response.json() as HeaderDiscovery[] : [];
-        return [placement, items[0] ?? null] as const;
-      }),
-    ).then((entries) => setTopBanners(Object.fromEntries(entries) as Record<TopPlacement, HeaderDiscovery | null>))
-      .catch(() => setTopBanners({ TOP: null, TOP_SECONDARY: null }));
-  }, []);
+    void loadTopBanners();
+  }, [loadTopBanners]);
+
+  useEffect(() => {
+    const refreshBanners = () => { void loadTopBanners(true); };
+    window.addEventListener("hafi:discoveries-updated", refreshBanners);
+    return () => window.removeEventListener("hafi:discoveries-updated", refreshBanners);
+  }, [loadTopBanners]);
+
+  useEffect(() => {
+    const banners = topBanners.TOP_SECONDARY;
+    if (banners.length < 2) {
+      setRightBannerIndex(0);
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      setRightBannerIndex((current) => (current + 1) % banners.length);
+    }, 3_000);
+    return () => window.clearInterval(interval);
+  }, [topBanners.TOP_SECONDARY]);
 
   useEffect(() => {
     const savedTheme = window.localStorage.getItem("rwanda-service-theme");
@@ -63,6 +86,7 @@ export function SiteHeader() {
     ...(["PROVINCE_MANAGER", "SUPER_ADMIN"].includes(user?.role ?? "") ? [{ href: "/admin/verify", label: t("review") }] : []),
     ...(user?.role === "SUPER_ADMIN" ? [
       { href: "/admin/team", label: t("team") },
+      { href: "/admin/categories", label: t("manageCategories") },
       { href: "/admin/discoveries", label: t("manageDiscoveries") },
       { href: "/admin/activity", label: t("history") },
     ] : []),
@@ -76,7 +100,7 @@ export function SiteHeader() {
 
   async function signOut() {
     await authClient.signOut();
-    setUser(null);
+    clearSession();
     window.location.assign("/");
   }
 
@@ -111,8 +135,8 @@ export function SiteHeader() {
         </div>
 
         <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-          <HeaderBanner actionLabel={t("viewOffer")} discovery={topBanners.TOP} fallbackDescription={t("latestOffersDescription")} fallbackTitle={t("latestOffers")} label={t("videoBannerAd")} />
-          <HeaderBanner actionLabel={t("viewOffer")} discovery={topBanners.TOP_SECONDARY} fallbackDescription={t("latestOffersDescription")} fallbackTitle={t("discoveries")} label={t("videoBannerAd")} />
+          <HeaderBanner actionLabel={t("viewOffer")} discovery={topBanners.TOP[0] ?? null} fallbackDescription={t("latestOffersDescription")} fallbackTitle={t("latestOffers")} label={t("videoBannerAd")} />
+          <HeaderBanner actionLabel={t("viewOffer")} discovery={topBanners.TOP_SECONDARY[rightBannerIndex] ?? null} fallbackDescription={t("latestOffersDescription")} fallbackTitle={t("discoveries")} label={t("videoBannerAd")} />
         </div>
       </div>
 
@@ -169,7 +193,7 @@ function HeaderBanner({ actionLabel, discovery, fallbackDescription, fallbackTit
       rel={discovery?.link ? "noreferrer" : undefined}
       target={discovery?.link ? "_blank" : undefined}
     >
-      {discovery?.imageBase64 ? <DiscoveryMedia alt="" className="absolute inset-0 h-full w-full opacity-100 transition duration-500 group-hover:scale-105" source={discovery.imageBase64} /> : null}
+      {discovery?.imageBase64 ? <DiscoveryMedia alt="" className="absolute inset-0 h-full w-full object-fill opacity-100 transition duration-500 group-hover:opacity-100" imagePreset="header-banner" loading="eager" source={discovery.imageBase64} /> : null}
       {!discovery || hasBannerCopy ? <>
         <span className="pointer-events-none absolute inset-y-0 left-0 w-4/5 bg-gradient-to-r from-slate-950/75 via-slate-950/35 to-transparent" />
         <span className="relative flex min-w-0 flex-1 flex-col justify-center px-4 py-4 text-white sm:px-5">

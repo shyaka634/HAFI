@@ -1,6 +1,7 @@
 import {
   boolean,
   doublePrecision,
+  index,
   jsonb,
   pgEnum,
   pgTable,
@@ -30,7 +31,12 @@ export const services = pgTable("Service", {
   longitude: doublePrecision("longitude").notNull(),
   createdAt: timestamp("createdAt", { withTimezone: false }).notNull(),
   updatedAt: timestamp("updatedAt", { withTimezone: false }).notNull(),
-});
+}, (table) => [
+  index("Service_category_idx").on(table.category),
+  index("Service_district_idx").on(table.district),
+  index("Service_category_district_idx").on(table.category, table.district),
+  index("Service_latitude_longitude_idx").on(table.latitude, table.longitude),
+]);
 
 export const users = pgTable("User", {
   id: text("id").primaryKey(),
@@ -44,7 +50,10 @@ export const users = pgTable("User", {
   archivedAt: timestamp("archivedAt", { withTimezone: false }),
   createdAt: timestamp("createdAt", { withTimezone: false }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { withTimezone: false }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("User_role_district_archived_idx").on(table.role, table.district, table.archivedAt),
+  index("User_role_province_archived_idx").on(table.role, table.province, table.archivedAt),
+]);
 
 export const sessions = pgTable("Session", {
   id: text("id").primaryKey(),
@@ -87,6 +96,10 @@ export const discoveries = pgTable("Discovery", {
   title: text("title").notNull(),
   description: text("description").notNull(),
   imageBase64: text("imageBase64").notNull(),
+  // Exact Cloudinary identifiers are saved separately from the display URL so
+  // a deleted banner can remove only the media Hafi uploaded for that banner.
+  mediaPublicId: text("mediaPublicId"),
+  mediaResourceType: text("mediaResourceType"),
   link: text("link"),
   // Existing adverts default to the side Discovery area. New adverts can be
   // assigned to the independent top-header banner by a super administrator.
@@ -94,7 +107,9 @@ export const discoveries = pgTable("Discovery", {
   published: boolean("published").notNull().default(true),
   createdAt: timestamp("createdAt", { withTimezone: false }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { withTimezone: false }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("Discovery_published_placement_createdAt_idx").on(table.published, table.placement, table.createdAt),
+]);
 
 export const serviceSubmissions = pgTable("ServiceSubmission", {
   id: text("id").primaryKey(),
@@ -117,7 +132,11 @@ export const serviceSubmissions = pgTable("ServiceSubmission", {
   reviewNote: text("reviewNote"),
   createdAt: timestamp("createdAt", { withTimezone: false }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { withTimezone: false }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("ServiceSubmission_status_district_createdAt_idx").on(table.status, table.district, table.createdAt),
+  index("ServiceSubmission_submittedBy_createdAt_idx").on(table.submittedBy, table.createdAt),
+  index("ServiceSubmission_targetServiceId_idx").on(table.targetServiceId),
+]);
 
 export const auditLogs = pgTable("AuditLog", {
   id: text("id").primaryKey(),
@@ -127,4 +146,7 @@ export const auditLogs = pgTable("AuditLog", {
   entityId: text("entityId"),
   details: jsonb("details"),
   createdAt: timestamp("createdAt", { withTimezone: false }).notNull().defaultNow(),
-});
+}, (table) => [
+  index("AuditLog_actorId_createdAt_idx").on(table.actorId, table.createdAt),
+  index("AuditLog_entityType_entityId_idx").on(table.entityType, table.entityId),
+]);

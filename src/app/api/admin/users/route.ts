@@ -7,7 +7,9 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { isSuperAdmin } from "@/lib/permissions";
 import { provinceForDistrict } from "@/lib/rwanda";
 import { createId } from "@/lib/utils";
+import { consumeStaffEmailVerificationCode } from "@/lib/staff-email-verification";
 import { staffCreationSchema } from "@/lib/validation";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function GET(request: Request) {
   const user = await getCurrentUser();
@@ -18,11 +20,17 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const limited = await enforceRateLimit(request, "admin");
+  if (limited) return limited;
   const actor = await getCurrentUser();
   if (!isSuperAdmin(actor)) return NextResponse.json({ error: "Super administrator access required." }, { status: 403 });
 
-  const parsed = staffCreationSchema.safeParse(await request.json().catch(() => null));
+  const body = await request.json().catch(() => null);
+  const parsed = staffCreationSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid account details." }, { status: 400 });
+
+  const verificationCode = typeof body?.verificationCode === "string" ? body.verificationCode.trim() : "";
+  if (!/^\d{6}$/.test(verificationCode)) return NextResponse.json({ error: "Enter the six-digit verification code sent to this email address." }, { status: 400 });
 
   const data = parsed.data;
   const district = data.role === "AGENT" ? data.district ?? null : null;
@@ -43,6 +51,9 @@ export async function POST(request: Request) {
     const [{ total }] = await db.select({ total: count() }).from(users).where(and(eq(users.role, "PROVINCE_MANAGER"), eq(users.province, managerProvince), isNull(users.archivedAt)));
     if (total >= 1) return NextResponse.json({ error: "This province already has a manager." }, { status: 409 });
   }
+
+  const verification = await consumeStaffEmailVerificationCode(data.email, verificationCode);
+  if (!verification.ok) return NextResponse.json({ error: verification.error }, { status: 400 });
 
   try {
     // Better Auth hashes the password and creates the normal credential record.

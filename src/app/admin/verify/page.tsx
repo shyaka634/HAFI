@@ -5,15 +5,15 @@ import { Check, ClipboardCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AccessLoading } from "@/components/access-loading";
-import { authClient } from "@/lib/auth/client";
-import type { AppUser, SubmissionStatus, SubmissionType } from "@/lib/types";
+import type { SubmissionStatus, SubmissionType } from "@/lib/types";
+import { useAppSession } from "@/providers/session-provider";
 
 type Submission = { id: string; name: string; category: string; district: string; address: string | null; latitude: number; longitude: number; notes: string | null; type: SubmissionType; status: SubmissionStatus; createdAt: string };
 
 export default function VerifyPage() {
-  const [user, setUser] = useState<AppUser | null>(null); const [items, setItems] = useState<Submission[]>([]); const [notice, setNotice] = useState(""); const [checkingAccess, setCheckingAccess] = useState(true);
+  const { user, isLoading: checkingAccess } = useAppSession(); const [items, setItems] = useState<Submission[]>([]); const [notice, setNotice] = useState("");
   async function load() { const response = await fetch("/api/submissions"); if (response.ok) setItems(await response.json()); }
-  useEffect(() => { authClient.getSession().then(async ({ data }) => { const current = (data?.user as AppUser | undefined) ?? null; setUser(current); if (["PROVINCE_MANAGER", "SUPER_ADMIN"].includes(current?.role ?? "")) await load(); }).finally(() => setCheckingAccess(false)); }, []);
+  useEffect(() => { if (["PROVINCE_MANAGER", "SUPER_ADMIN"].includes(user?.role ?? "")) void load(); }, [user]);
   async function review(id: string, status: "APPROVED" | "REJECTED") { const response = await fetch(`/api/submissions/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status }) }); const data = await response.json(); if (!response.ok) return setNotice(data.error); setNotice(status === "APPROVED" ? "Submission approved and published." : "Submission rejected."); load(); }
   if (checkingAccess) return <AccessLoading />;
   if (!user || !["PROVINCE_MANAGER", "SUPER_ADMIN"].includes(user.role)) return <Access />;

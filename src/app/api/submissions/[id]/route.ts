@@ -6,8 +6,11 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { canReviewDistrict } from "@/lib/permissions";
 import { createId } from "@/lib/utils";
 import { reviewSchema } from "@/lib/validation";
+import { enforceRateLimit } from "@/lib/rate-limit";
 
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  const limited = await enforceRateLimit(request, "admin");
+  if (limited) return limited;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
   const [submission] = await db.select().from(serviceSubmissions).where(eq(serviceSubmissions.id, params.id)).limit(1);

@@ -45,7 +45,7 @@ export async function POST() {
       .values({
         id: service.id,
         name: service.name,
-        category: service.category,
+        category: service.category as never,
         district: service.district,
         sector: service.sector,
         address: service.address,
@@ -59,7 +59,7 @@ export async function POST() {
         target: services.id,
         set: {
           name: service.name,
-          category: service.category,
+          category: service.category as never,
           district: service.district,
           sector: service.sector,
           address: service.address,

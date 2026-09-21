@@ -3,6 +3,7 @@ import "./globals.css";
 import { AppShell } from "@/components/layout/app-shell";
 import { PwaRegister } from "@/components/pwa-register";
 import { LocaleProvider } from "@/providers/locale-provider";
+import { SessionProvider } from "@/providers/session-provider";
 
 export const metadata: Metadata = {
   title: "Hafi | Trusted services near you",
@@ -14,5 +15,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="en"><body className="flex min-h-screen flex-col"><LocaleProvider><PwaRegister /><AppShell>{children}</AppShell></LocaleProvider></body></html>;
+  return <html lang="en"><body className="flex min-h-screen flex-col"><LocaleProvider><SessionProvider><PwaRegister /><AppShell>{children}</AppShell></SessionProvider></LocaleProvider></body></html>;
 }
