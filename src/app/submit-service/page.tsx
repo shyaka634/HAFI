@@ -27,6 +27,15 @@ const initialForm = {
 const MAX_PLACE_PHOTO_BYTES = 2 * 1024 * 1024;
 const ACCEPTED_PLACE_PHOTO_TYPES = ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
+type ExistingService = {
+  id: string;
+  name: string;
+  category: ServiceCategory;
+  district: string;
+  sector: string | null;
+  address: string | null;
+};
+
 export default function SubmitServicePage() {
   const { user, isLoading } = useAppSession();
   const [form, setForm] = useState(initialForm);
@@ -37,6 +46,8 @@ export default function SubmitServicePage() {
   const [photoInputKey, setPhotoInputKey] = useState(0);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [categories, setCategories] = useState<string[]>([...SERVICE_CATEGORIES]);
+  const [serviceMatches, setServiceMatches] = useState<ExistingService[]>([]);
+  const [searchingServices, setSearchingServices] = useState(false);
 
   useEffect(() => {
     if (user?.district) setForm((value) => ({ ...value, district: user.district! }));
@@ -51,8 +62,56 @@ export default function SubmitServicePage() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const searchTerm = form.name.trim();
+    if (form.type !== "LOCATION_CHANGE" || form.targetServiceId || searchTerm.length < 2 || !form.district) {
+      setServiceMatches([]);
+      setSearchingServices(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setSearchingServices(true);
+      try {
+        const parameters = new URLSearchParams({ name: searchTerm, district: form.district, category: form.category });
+        const response = await fetch(`/api/services?${parameters}`, { signal: controller.signal });
+        const matches = response.ok ? await response.json() as ExistingService[] : [];
+        setServiceMatches(matches);
+      } catch (reason) {
+        if (!(reason instanceof DOMException && reason.name === "AbortError")) setServiceMatches([]);
+      } finally {
+        if (!controller.signal.aborted) setSearchingServices(false);
+      }
+    }, 250);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timeout);
+    };
+  }, [form.category, form.district, form.name, form.targetServiceId, form.type]);
+
   function update(key: keyof typeof form, value: string) {
     setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function changeUpdateType(type: "CREATE" | "LOCATION_CHANGE") {
+    setForm((current) => ({ ...current, type, targetServiceId: "", name: type === "LOCATION_CHANGE" ? "" : current.name }));
+    setServiceMatches([]);
+  }
+
+  function changeCategory(category: ServiceCategory) {
+    setForm((current) => ({ ...current, category, targetServiceId: "" }));
+    setServiceMatches([]);
+  }
+
+  function changeServiceName(name: string) {
+    setForm((current) => ({ ...current, name, targetServiceId: current.type === "LOCATION_CHANGE" ? "" : current.targetServiceId }));
+  }
+
+  function chooseExistingService(service: ExistingService) {
+    setForm((current) => ({ ...current, targetServiceId: service.id, name: service.name, category: service.category }));
+    setServiceMatches([]);
   }
 
   function useCurrentLocation() {
@@ -115,6 +174,10 @@ export default function SubmitServicePage() {
     setNotice("");
 
     try {
+      if (form.type === "LOCATION_CHANGE" && !form.targetServiceId) {
+        setError("Enter the service name, then select the official service from the results.");
+        return;
+      }
       let photoUrl = "";
       if (photoFile) {
         const media = new FormData();
@@ -181,25 +244,21 @@ export default function SubmitServicePage() {
       <Card className="mt-8 p-5 sm:p-7">
         <form onSubmit={submit} className="grid gap-5 sm:grid-cols-2">
           <Field label="Update type">
-            <select value={form.type} onChange={(event) => update("type", event.target.value)} className="h-11 w-full rounded-xl border bg-white px-3 text-sm">
+            <select value={form.type} onChange={(event) => changeUpdateType(event.target.value as "CREATE" | "LOCATION_CHANGE")} className="h-11 w-full rounded-xl border bg-white px-3 text-sm">
               <option value="CREATE">New service</option>
               <option value="LOCATION_CHANGE">Location change</option>
             </select>
           </Field>
           <Field label="Service category">
-            <select value={form.category} onChange={(event) => update("category", event.target.value)} className="h-11 w-full rounded-xl border bg-white px-3 text-sm">
+            <select value={form.category} onChange={(event) => changeCategory(event.target.value as ServiceCategory)} className="h-11 w-full rounded-xl border bg-white px-3 text-sm">
               {categories.map((category) => <option key={category} value={category}>{categoryLabel(category, "en")}</option>)}
             </select>
           </Field>
-          {form.type === "LOCATION_CHANGE" && (
-            <Field label="Official service ID">
-              <Input required value={form.targetServiceId} onChange={(event) => update("targetServiceId", event.target.value)} placeholder="Paste the service ID" />
-            </Field>
-          )}
-          <div className={form.type === "LOCATION_CHANGE" ? "" : "sm:col-span-2"}>
+          <div className="sm:col-span-2">
             <Field label="Service name">
-              <Input required value={form.name} onChange={(event) => update("name", event.target.value)} placeholder="e.g. Kigali Community Pharmacy" />
+              <Input required value={form.name} onChange={(event) => changeServiceName(event.target.value)} placeholder={form.type === "LOCATION_CHANGE" ? "Start typing the official service name" : "e.g. Kigali Community Pharmacy"} />
             </Field>
+            {form.type === "LOCATION_CHANGE" ? <ServiceNamePicker matches={serviceMatches} name={form.name} onChoose={chooseExistingService} selected={Boolean(form.targetServiceId)} searching={searchingServices} /> : null}
           </div>
           <Field label="District"><Input required disabled value={form.district} /></Field>
           <Field label="Sector"><Input value={form.sector} onChange={(event) => update("sector", event.target.value)} placeholder="e.g. Kacyiru" /></Field>
@@ -232,6 +291,21 @@ export default function SubmitServicePage() {
       </Card>
     </div>
   );
+}
+
+function ServiceNamePicker({ matches, name, onChoose, selected, searching }: { matches: ExistingService[]; name: string; onChoose: (service: ExistingService) => void; selected: boolean; searching: boolean }) {
+  const hasSearchTerm = name.trim().length >= 2;
+  if (selected) return <p className="mt-2 text-xs font-bold text-forest-700">Official service selected. Edit the name to choose a different service.</p>;
+  if (!hasSearchTerm) return <p className="mt-2 text-xs text-slate-500">Enter at least two letters, then choose the matching official service.</p>;
+  if (searching) return <p className="mt-2 text-xs text-slate-500">Searching official services…</p>;
+  if (!matches.length) return <p className="mt-2 text-xs font-medium text-amber-700">No official service with that name was found in your district and category.</p>;
+
+  return <div aria-label="Official service matches" className="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white" role="listbox">
+    {matches.map((service) => <button aria-selected="false" className="block w-full border-b border-slate-100 px-4 py-3 text-left last:border-b-0 hover:bg-forest-50 focus:bg-forest-50 focus:outline-none" key={service.id} onClick={() => onChoose(service)} role="option" type="button">
+      <span className="block text-sm font-bold text-ink">{service.name}</span>
+      <span className="mt-0.5 block text-xs text-slate-500">{[service.sector, service.address, service.district].filter(Boolean).join(" · ")}</span>
+    </button>)}
+  </div>;
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {

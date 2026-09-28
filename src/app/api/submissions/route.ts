@@ -35,7 +35,10 @@ export async function POST(request: NextRequest) {
   if (!canSubmitForDistrict(user, data.district)) return NextResponse.json({ error: "Agents can only submit work in their assigned district." }, { status: 403 });
   if (data.type === "LOCATION_CHANGE") {
     const [target] = await db.select().from(services).where(eq(services.id, data.targetServiceId!)).limit(1);
-    if (!target || target.district !== data.district) return NextResponse.json({ error: "Choose an official service in your district." }, { status: 400 });
+    const selectedNameMatches = target?.name.trim().toLowerCase() === data.name.trim().toLowerCase();
+    if (!target || target.district !== data.district || target.category !== data.category || !selectedNameMatches) {
+      return NextResponse.json({ error: "Choose the official service from the name results in your district and category." }, { status: 400 });
+    }
   }
   const id = createId();
   await db.insert(serviceSubmissions).values({ id, ...submissionData, category: data.category as never, imageBase64: photoUrl || photoBase64 || null, sector: data.sector || null, address: data.address || null, phone: data.phone || null, notes: data.notes || null, targetServiceId: data.targetServiceId || null, submittedBy: user.id, updatedAt: new Date() });
