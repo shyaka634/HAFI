@@ -6,10 +6,8 @@ const requiredText = (max: number) => z.string().trim().min(1).max(max);
 const optionalText = (max: number) => z.string().trim().max(max).optional();
 const categoryValueSchema = z.string().trim().regex(CATEGORY_VALUE_PATTERN, "Choose a valid service category.");
 
-const MAX_LOCAL_MEDIA_LENGTH = 12_000_000;
 const MAX_SERVICE_PHOTO_LENGTH = 3_000_000;
 const localImagePattern = /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
-const localVideoPattern = /^data:video\/(mp4|webm|ogg);base64,[A-Za-z0-9+/=]+$/;
 
 function isSafeRemoteImageUrl(value: string) {
   try {
@@ -20,19 +18,9 @@ function isSafeRemoteImageUrl(value: string) {
   }
 }
 
-function isSafeDiscoveryMediaSource(value: string) {
-  if (localImagePattern.test(value) || localVideoPattern.test(value)) return value.length <= MAX_LOCAL_MEDIA_LENGTH;
-  try {
-    const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:";
-  } catch {
-    return false;
-  }
-}
-
 export const discoveryMediaSourceSchema = z.string().trim().min(1).refine(
-  isSafeDiscoveryMediaSource,
-  "Use an http(s) image or video URL, or a PNG, JPEG, WebP, GIF, MP4, WebM, or Ogg file within the upload limit.",
+  isSafeRemoteImageUrl,
+  "Use a valid http(s) image or video URL.",
 );
 
 export const serviceSearchSchema = z.object({

@@ -21,14 +21,18 @@ type DiscoveryMediaProps = {
   controls?: boolean;
   imagePreset?: CloudinaryImagePreset;
   loading?: "eager" | "lazy";
+  fit?: "contain" | "cover" | "fill";
 };
 
 // A muted loop makes the advert lively without unexpectedly playing sound.
-// "object-fill" makes every video fit the banner space without cropping it.
-export function DiscoveryMedia({ source, alt, className, controls = false, imagePreset = "discovery-card", loading = "lazy" }: DiscoveryMediaProps) {
+// Discovery cards can use `contain` to preserve the complete media, while
+// compact banner placements can keep their intentional edge-to-edge layout.
+export function DiscoveryMedia({ source, alt, className, controls = false, imagePreset = "discovery-card", loading = "lazy", fit = "fill" }: DiscoveryMediaProps) {
+  const fitClass = fit === "contain" ? "object-contain" : fit === "cover" ? "object-cover" : "object-fill";
+
   if (isDiscoveryVideo(source)) {
-    return <video aria-label={alt} autoPlay className={cn("object-fill", className)} controls={controls} loop muted playsInline preload="metadata" src={source} />;
+    return <video aria-label={alt} autoPlay className={cn(fitClass, className)} controls={controls} loop muted playsInline preload="metadata" src={source} />;
   }
 
-  return <img alt={alt} className={cn("object-cover", className)} decoding="async" loading={loading} src={optimizedImageUrl(source, imagePreset)} />;
+  return <img alt={alt} className={cn(fitClass, className)} decoding="async" loading={loading} src={optimizedImageUrl(source, imagePreset)} />;
 }

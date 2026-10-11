@@ -79,6 +79,7 @@ export default function AdminDiscoveriesPage() {
     let mediaUrl = String(data.get("mediaUrl") ?? "").trim() || editing?.imageBase64 || "";
     let mediaPublicId = editing?.mediaPublicId ?? null;
     let mediaResourceType = editing?.mediaResourceType ?? null;
+    let shouldUpdateMedia = !editing;
 
     if (file instanceof File && file.size > 0) {
       const isImage = ACCEPTED_IMAGE_TYPES.includes(file.type);
@@ -104,18 +105,11 @@ export default function AdminDiscoveriesPage() {
       }
 
       try {
-        // New uploads use Cloudinary when it is configured. During setup, keep
-        // the existing Base64 fallback so administrators are never blocked.
         const uploaded = await uploadDiscoveryMedia(file);
-        if (uploaded) {
-          mediaUrl = uploaded.url;
-          mediaPublicId = uploaded.publicId;
-          mediaResourceType = uploaded.resourceType;
-        } else {
-          mediaUrl = await fileToDataUrl(file);
-          mediaPublicId = null;
-          mediaResourceType = null;
-        }
+        mediaUrl = uploaded.url;
+        mediaPublicId = uploaded.publicId;
+        mediaResourceType = uploaded.resourceType;
+        shouldUpdateMedia = true;
       } catch (reason) {
         setSaving(false);
         setNotice(reason instanceof Error ? reason.message : "The banner media could not be uploaded.");
@@ -133,12 +127,13 @@ export default function AdminDiscoveriesPage() {
     if (!(file instanceof File && file.size > 0) && mediaUrl !== editing?.imageBase64) {
       mediaPublicId = null;
       mediaResourceType = null;
+      shouldUpdateMedia = true;
     }
 
     const body = {
       title: String(data.get("title") ?? ""),
       description: String(data.get("description") ?? ""),
-      imageUrl: mediaUrl,
+      ...(shouldUpdateMedia ? { imageUrl: mediaUrl } : {}),
       mediaPublicId,
       mediaResourceType,
       link: String(data.get("link") ?? "") || null,
@@ -220,7 +215,7 @@ export default function AdminDiscoveriesPage() {
           <label className="block">
             <span className="mb-1.5 flex items-center gap-2 text-sm font-bold text-slate-700"><ImagePlus className="h-4 w-4 text-forest-700" />Choose an image or video from this device</span>
             <input accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/ogg" className="block w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-forest-50 file:px-3 file:py-1.5 file:text-sm file:font-bold file:text-forest-700 hover:file:bg-forest-100" name="mediaFile" type="file" />
-            <span className="mt-1 block text-xs text-slate-500">Images: maximum 2 MB. Videos: MP4, WebM, or Ogg, maximum 8 MB. Local uploads are checked for suitable banner dimensions. When editing, leave this empty to keep the current media.</span>
+            <span className="mt-1 block text-xs text-slate-500">Images: maximum 2 MB. Videos: MP4, WebM, or Ogg, maximum 8 MB. Device uploads require Cloudinary; no Base64 media is stored. When editing, leave this empty to keep the current media.</span>
           </label>
           <label className="block">
             <span className="mb-1.5 block text-sm font-bold text-slate-700">Optional action link</span>
@@ -283,23 +278,14 @@ function getMediaDimensions(file: File) {
   });
 }
 
-function fileToDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("The selected media could not be read."));
-    reader.readAsDataURL(file);
-  });
-}
-
-async function uploadDiscoveryMedia(file: File): Promise<{ url: string; publicId: string; resourceType: "image" | "video" } | null> {
+async function uploadDiscoveryMedia(file: File): Promise<{ url: string; publicId: string; resourceType: "image" | "video" }> {
   const form = new FormData();
   form.set("kind", "discovery");
   form.set("file", file);
   const response = await fetch("/api/media/upload", { method: "POST", body: form });
   const data = await response.json().catch(() => null);
   if (response.ok && typeof data?.url === "string" && typeof data?.publicId === "string" && (data?.resourceType === "image" || data?.resourceType === "video")) return data;
-  if (data?.code === "MEDIA_STORAGE_NOT_CONFIGURED") return null;
+  if (data?.code === "MEDIA_STORAGE_NOT_CONFIGURED") throw new Error("Cloudinary must be configured before banner media can be uploaded.");
   throw new Error(data?.error ?? "The banner media could not be uploaded.");
 }
 
