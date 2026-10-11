@@ -18,7 +18,6 @@ const initialForm = {
   sector: "",
   address: "",
   phone: "",
-  photoBase64: "",
   latitude: "",
   longitude: "",
   notes: "",
@@ -45,6 +44,7 @@ export default function SubmitServicePage() {
   const [photoName, setPhotoName] = useState("");
   const [photoInputKey, setPhotoInputKey] = useState(0);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
   const [categories, setCategories] = useState<string[]>([...SERVICE_CATEGORIES]);
   const [serviceMatches, setServiceMatches] = useState<ExistingService[]>([]);
   const [searchingServices, setSearchingServices] = useState(false);
@@ -61,6 +61,10 @@ export default function SubmitServicePage() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => () => {
+    if (photoPreviewUrl) URL.revokeObjectURL(photoPreviewUrl);
+  }, [photoPreviewUrl]);
 
   useEffect(() => {
     const searchTerm = form.name.trim();
@@ -134,14 +138,18 @@ export default function SubmitServicePage() {
     );
   }
 
-  async function choosePhoto(event: ChangeEvent<HTMLInputElement>) {
+  function clearSelectedPhoto() {
+    setPhotoName("");
+    setPhotoFile(null);
+    setPhotoPreviewUrl("");
+  }
+
+  function choosePhoto(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     setError("");
+    clearSelectedPhoto();
 
     if (!file) {
-      setForm((current) => ({ ...current, photoBase64: "" }));
-      setPhotoName("");
-      setPhotoFile(null);
       return;
     }
 
@@ -157,14 +165,9 @@ export default function SubmitServicePage() {
       return;
     }
 
-    try {
-      const photoBase64 = await fileToDataUrl(file);
-      setForm((current) => ({ ...current, photoBase64 }));
-      setPhotoName(file.name);
-      setPhotoFile(file);
-    } catch {
-      setError("The photo could not be read. Please choose another image.");
-    }
+    setPhotoName(file.name);
+    setPhotoFile(file);
+    setPhotoPreviewUrl(URL.createObjectURL(file));
   }
 
   async function submit(event: FormEvent) {
@@ -186,8 +189,8 @@ export default function SubmitServicePage() {
         const uploadResponse = await fetch("/api/media/upload", { method: "POST", body: media });
         const upload = await uploadResponse.json().catch(() => null);
         if (uploadResponse.ok && typeof upload?.url === "string") photoUrl = upload.url;
-        else if (upload?.code !== "MEDIA_STORAGE_NOT_CONFIGURED") {
-          setError(upload?.error ?? "Your place photo could not be uploaded. Please try again.");
+        else {
+          setError(upload?.code === "MEDIA_STORAGE_NOT_CONFIGURED" ? "Cloudinary must be configured before place photos can be submitted." : upload?.error ?? "Your place photo could not be uploaded. Please try again.");
           return;
         }
       }
@@ -196,7 +199,6 @@ export default function SubmitServicePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
-          photoBase64: photoUrl ? "" : form.photoBase64,
           photoUrl: photoUrl || undefined,
           latitude: Number(form.latitude),
           longitude: Number(form.longitude),
@@ -211,8 +213,7 @@ export default function SubmitServicePage() {
 
       setNotice("Your update is waiting for your province manager's review.");
       setForm({ ...initialForm, district: user?.district ?? "" });
-      setPhotoName("");
-      setPhotoFile(null);
+      clearSelectedPhoto();
       setPhotoInputKey((current) => current + 1);
     } catch {
       setError("Your update could not be submitted. Please check your connection and try again.");
@@ -273,8 +274,8 @@ export default function SubmitServicePage() {
             <Field label={form.type === "CREATE" ? "Place photo" : "Updated place photo (optional)"}>
               <span className="mb-2 flex items-center gap-2 text-xs text-slate-500"><ImagePlus className="h-4 w-4 text-forest-700" />Add a clear photo of the building, sign, entrance, or place.</span>
               <input accept="image/png,image/jpeg,image/webp,image/gif" className="block w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-forest-50 file:px-3 file:py-1.5 file:text-sm file:font-bold file:text-forest-700 hover:file:bg-forest-100" key={photoInputKey} onChange={choosePhoto} required={form.type === "CREATE"} type="file" />
-              <span className="mt-1 block text-xs text-slate-500">PNG, JPEG, WebP, or GIF. Maximum 2 MB.{photoName ? ` Selected: ${photoName}` : ""}</span>
-              {form.photoBase64 ? <img alt="Selected place" className="mt-3 h-40 w-full rounded-xl border border-slate-200 object-cover sm:max-w-sm" src={form.photoBase64} /> : null}
+              <span className="mt-1 block text-xs text-slate-500">PNG, JPEG, WebP, or GIF. Maximum 2 MB. Uploaded securely to Cloudinary; Base64 photos are not accepted.{photoName ? ` Selected: ${photoName}` : ""}</span>
+              {photoPreviewUrl ? <img alt="Selected place" className="mt-3 h-40 w-full rounded-xl border border-slate-200 object-cover sm:max-w-sm" src={photoPreviewUrl} /> : null}
             </Field>
           </div>
           <Field label="Latitude"><Input required type="number" step="any" value={form.latitude} onChange={(event) => update("latitude", event.target.value)} /></Field>
@@ -316,11 +317,3 @@ function AccessMessage({ text }: { text: string }) {
   return <div className="mx-auto max-w-md px-4 py-24 text-center"><h1 className="text-2xl font-extrabold text-ink">Access unavailable</h1><p className="mt-3 text-slate-500">{text}</p></div>;
 }
 
-function fileToDataUrl(file: File) {
-  return new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("Invalid photo."));
-    reader.onerror = () => reject(reader.error ?? new Error("Photo read failed."));
-    reader.readAsDataURL(file);
-  });
-}

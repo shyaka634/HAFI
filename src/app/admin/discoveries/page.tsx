@@ -76,7 +76,14 @@ export default function AdminDiscoveriesPage() {
     // A file input cannot be pre-filled by the browser. When editing an
     // existing local upload, keep its current media unless a replacement is
     // selected or a different URL is entered.
-    let mediaUrl = String(data.get("mediaUrl") ?? "").trim() || editing?.imageBase64 || "";
+    const enteredMediaUrl = String(data.get("mediaUrl") ?? "").trim();
+    if (enteredMediaUrl.toLowerCase().startsWith("data:")) {
+      setSaving(false);
+      setNotice("Base64 media is not allowed. Upload the file to Cloudinary or use a public http(s) media URL.");
+      return;
+    }
+
+    let mediaUrl = enteredMediaUrl || editing?.imageBase64 || "";
     let mediaPublicId = editing?.mediaPublicId ?? null;
     let mediaResourceType = editing?.mediaResourceType ?? null;
     let shouldUpdateMedia = !editing;

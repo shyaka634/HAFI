@@ -26,10 +26,14 @@ export async function POST(request: NextRequest) {
   if (limited) return limited;
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Sign in required." }, { status: 401 });
-  const parsed = submissionSchema.safeParse(await request.json().catch(() => null));
+  const body = await request.json().catch(() => null);
+  if (body && typeof body === "object" && "photoBase64" in body) {
+    return NextResponse.json({ error: "Base64 place photos are not allowed. Upload the photo to Cloudinary first." }, { status: 400 });
+  }
+  const parsed = submissionSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message ?? "Invalid submission." }, { status: 400 });
   const data = parsed.data;
-  const { photoBase64, photoUrl, ...submissionData } = data;
+  const { photoUrl, ...submissionData } = data;
   const categories = await listServiceCategories();
   if (!categories.includes(data.category)) return NextResponse.json({ error: "Choose a valid service category." }, { status: 400 });
   if (!canSubmitForDistrict(user, data.district)) return NextResponse.json({ error: "Agents can only submit work in their assigned district." }, { status: 403 });
@@ -41,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
   }
   const id = createId();
-  await db.insert(serviceSubmissions).values({ id, ...submissionData, category: data.category as never, imageBase64: photoUrl || photoBase64 || null, sector: data.sector || null, address: data.address || null, phone: data.phone || null, notes: data.notes || null, targetServiceId: data.targetServiceId || null, submittedBy: user.id, updatedAt: new Date() });
-  await db.insert(auditLogs).values({ id: createId(), actorId: user.id, action: "SUBMISSION_CREATED", entityType: "ServiceSubmission", entityId: id, details: { district: data.district, type: data.type, hasPhoto: Boolean(photoUrl || photoBase64) } });
+  await db.insert(serviceSubmissions).values({ id, ...submissionData, category: data.category as never, imageBase64: photoUrl || null, sector: data.sector || null, address: data.address || null, phone: data.phone || null, notes: data.notes || null, targetServiceId: data.targetServiceId || null, submittedBy: user.id, updatedAt: new Date() });
+  await db.insert(auditLogs).values({ id: createId(), actorId: user.id, action: "SUBMISSION_CREATED", entityType: "ServiceSubmission", entityId: id, details: { district: data.district, type: data.type, hasPhoto: Boolean(photoUrl) } });
   return NextResponse.json({ id }, { status: 201 });
 }

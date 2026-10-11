@@ -6,8 +6,6 @@ const requiredText = (max: number) => z.string().trim().min(1).max(max);
 const optionalText = (max: number) => z.string().trim().max(max).optional();
 const categoryValueSchema = z.string().trim().regex(CATEGORY_VALUE_PATTERN, "Choose a valid service category.");
 
-const MAX_SERVICE_PHOTO_LENGTH = 3_000_000;
-const localImagePattern = /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/;
 
 function isSafeRemoteImageUrl(value: string) {
   try {
@@ -46,13 +44,6 @@ export const submissionSchema = z.object({
   sector: optionalText(100),
   address: optionalText(240),
   phone: optionalText(30),
-  photoBase64: z.preprocess(
-    (value) => value === "" ? undefined : value,
-    z.string().trim().refine(
-      (value) => localImagePattern.test(value) && value.length <= MAX_SERVICE_PHOTO_LENGTH,
-      "Choose a PNG, JPEG, WebP, or GIF image smaller than 2 MB.",
-    ).optional(),
-  ),
   photoUrl: z.preprocess(
     (value) => value === "" ? undefined : value,
     z.string().trim().refine(isSafeRemoteImageUrl, "Use a valid place photo URL.").optional(),
@@ -63,9 +54,9 @@ export const submissionSchema = z.object({
 }).refine((data) => data.type !== "LOCATION_CHANGE" || Boolean(data.targetServiceId), {
   path: ["targetServiceId"],
   message: "Choose the official service that moved.",
-}).refine((data) => data.type === "LOCATION_CHANGE" || Boolean(data.photoBase64 || data.photoUrl), {
+}).refine((data) => data.type === "LOCATION_CHANGE" || Boolean(data.photoUrl), {
   path: ["photoUrl"],
-  message: "Add a photo of this place.",
+  message: "Add a place photo uploaded to Cloudinary.",
 });
 
 export const reviewSchema = z.object({
