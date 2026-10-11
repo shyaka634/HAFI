@@ -9,15 +9,10 @@ import { Button } from "@/components/ui/button";
 import { DiscoveryMedia } from "@/features/discoveries/components/discovery-media";
 import { useLocale } from "@/providers/locale-provider";
 import { useAppSession } from "@/providers/session-provider";
+import { loadHomeData } from "@/lib/home-data-client";
+import type { PublicDiscovery } from "@/lib/public-discovery";
 
-type HeaderDiscovery = {
-  id: string;
-  title: string;
-  description: string;
-  imageBase64: string;
-  link: string | null;
-  placement: "TOP" | "TOP_SECONDARY" | "SIDE";
-};
+type HeaderDiscovery = PublicDiscovery;
 
 type TopPlacement = "TOP" | "TOP_SECONDARY";
 
@@ -31,16 +26,9 @@ export function SiteHeader() {
   const [rightBannerIndex, setRightBannerIndex] = useState(0);
 
   const loadTopBanners = useCallback(async (fresh = false) => {
-    const refreshQuery = fresh ? `&refresh=${Date.now()}` : "";
     try {
-      const entries = await Promise.all(
-        (["TOP", "TOP_SECONDARY"] as const).map(async (placement) => {
-          const response = await fetch(`/api/discoveries?placement=${placement}${refreshQuery}`, fresh ? { cache: "no-store" } : undefined);
-          const items = response.ok ? await response.json() as HeaderDiscovery[] : [];
-          return [placement, items] as const;
-        }),
-      );
-      setTopBanners(Object.fromEntries(entries) as Record<TopPlacement, HeaderDiscovery[]>);
+      const data = await loadHomeData({ fresh });
+      setTopBanners({ TOP: data.discoveries.top, TOP_SECONDARY: data.discoveries.topSecondary });
     } catch {
       setTopBanners({ TOP: [], TOP_SECONDARY: [] });
     }

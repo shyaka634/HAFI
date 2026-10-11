@@ -1,5 +1,7 @@
-const CACHE_NAME = "hafi-v1";
-const APP_SHELL = ["/", "/offline.html", "/manifest.webmanifest", "/icon.svg", "/images/rwanda-services-map-background.png"];
+const CACHE_NAME = "hafi-v2";
+// Do not pre-cache the 2.5 MB decorative map background during installation.
+// It is loaded only after the directory is interactive and then cached normally.
+const APP_SHELL = ["/", "/offline.html", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
@@ -52,8 +54,13 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  if (url.pathname === "/api/services" || url.pathname === "/api/discoveries") {
+  if (url.pathname === "/api/services" || url.pathname === "/api/discoveries" || url.pathname === "/api/categories" || url.pathname === "/api/home") {
     event.respondWith(networkFirst(request, new Response("[]", { headers: { "Content-Type": "application/json" } })));
+    return;
+  }
+
+  if (url.pathname.startsWith("/api/discoveries/") && url.pathname.endsWith("/media")) {
+    event.respondWith(cacheFirst(request));
     return;
   }
 

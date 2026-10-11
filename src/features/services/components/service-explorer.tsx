@@ -13,6 +13,8 @@ import { useLocale } from "@/providers/locale-provider";
 import { ServiceCard } from "@/features/services/components/service-card";
 import { DiscoveryMedia } from "@/features/discoveries/components/discovery-media";
 import { categoryDescription, categoryLabel } from "@/features/services/service-category-copy";
+import { loadHomeData } from "@/lib/home-data-client";
+import type { PublicDiscovery } from "@/lib/public-discovery";
 import type { Service, ServiceRoute } from "@/features/services/types/service";
 
 const ServiceMap = dynamic(() => import("@/features/services/components/service-map").then((module) => module.ServiceMap), { ssr: false, loading: () => <div className="h-full animate-pulse bg-slate-100" /> });
@@ -33,7 +35,7 @@ const homeCopy = {
 } as const;
 
 type SearchOptions = Partial<{ category: ServiceCategory | ""; name: string; district: string; nearby: boolean }>;
-type Discovery = { id: string; title: string; description: string; imageBase64: string; link: string | null; placement: "TOP" | "TOP_SECONDARY" | "SIDE" };
+type Discovery = PublicDiscovery;
 
 export function ServiceExplorer() {
   const { locale } = useLocale();
@@ -50,18 +52,26 @@ export function ServiceExplorer() {
   const [discoveries, setDiscoveries] = useState<Discovery[]>([]);
   const [discoveriesLoading, setDiscoveriesLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([...SERVICE_CATEGORIES]);
+  const [mapBackdropReady, setMapBackdropReady] = useState(false);
 
   useEffect(() => {
-    fetch("/api/discoveries?placement=SIDE").then((response) => response.ok ? response.json() : []).then((items: Discovery[]) => setDiscoveries(items)).catch(() => setDiscoveries([])).finally(() => setDiscoveriesLoading(false));
+    let active = true;
+    loadHomeData()
+      .then((data) => {
+        if (!active) return;
+        setDiscoveries(data.discoveries.side);
+        if (data.categories.length) setCategories(data.categories);
+      })
+      .catch(() => { if (active) setDiscoveries([]); })
+      .finally(() => { if (active) setDiscoveriesLoading(false); });
+    return () => { active = false; };
   }, []);
 
   useEffect(() => {
-    fetch("/api/categories")
-      .then((response) => response.ok ? response.json() : null)
-      .then((data: { categories?: string[] } | null) => {
-        if (data?.categories?.length) setCategories(data.categories);
-      })
-      .catch(() => {});
+    // The map artwork is decorative. Let the form, scripts, and banner data
+    // settle first instead of competing with a 2.5 MB background download.
+    const timer = window.setTimeout(() => setMapBackdropReady(true), 1_500);
+    return () => window.clearTimeout(timer);
   }, []);
 
   async function search(next: SearchOptions = {}, coordinates = location) {
@@ -94,7 +104,7 @@ export function ServiceExplorer() {
   return <>
     <section
       className="relative overflow-hidden bg-forest-900 bg-cover bg-center text-white"
-      style={{ backgroundImage: "linear-gradient(120deg, rgba(7, 93, 59, 0.20), rgba(23, 145, 98, 0.12)), url('/images/rwanda-services-map-background.png')" }}
+      style={mapBackdropReady ? { backgroundImage: "linear-gradient(120deg, rgba(7, 93, 59, 0.20), rgba(23, 145, 98, 0.12)), url('/images/rwanda-services-map-background.png')" } : undefined}
     >
       <div className="relative mx-auto max-w-7xl px-4 py-7 sm:px-6 sm:py-9 lg:px-8">
         <Card className="p-5 shadow-lift sm:p-6">

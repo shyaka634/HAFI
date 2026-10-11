@@ -8,6 +8,7 @@ import { isSuperAdmin } from "@/lib/permissions";
 import { createId } from "@/lib/utils";
 import { discoveryMediaSourceSchema } from "@/lib/validation";
 import { enforceRateLimit } from "@/lib/rate-limit";
+import { publicDiscovery } from "@/lib/public-discovery";
 
 // TOP remains the first slot so existing top adverts keep their position.
 const placementSchema = z.enum(["TOP", "TOP_SECONDARY", "SIDE"]);
@@ -45,7 +46,10 @@ export async function GET(request: NextRequest) {
     ...(placement && placement.success ? [eq(discoveries.placement, placement.data)] : []),
   ];
   const rows = filters.length ? await query.where(and(...filters)).limit(24) : await query.limit(24);
-  return NextResponse.json(rows, showAll ? undefined : { headers: { "Cache-Control": refreshRequested ? "no-store" : "public, s-maxage=60, stale-while-revalidate=300" } });
+  // Keep full media sources available in the protected admin screen. Public
+  // responses use a cacheable media URL for old Base64 images so they do not
+  // inflate every API response by megabytes.
+  return NextResponse.json(showAll ? rows : rows.map(publicDiscovery), showAll ? undefined : { headers: { "Cache-Control": refreshRequested ? "no-store" : "public, s-maxage=60, stale-while-revalidate=300" } });
 }
 
 export async function POST(request: NextRequest) {
