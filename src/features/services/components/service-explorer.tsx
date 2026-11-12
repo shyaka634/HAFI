@@ -44,19 +44,27 @@ export function ServiceExplorer() {
   const [hasMoreDiscoveries, setHasMoreDiscoveries] = useState(false);
   const [discoveriesLoading, setDiscoveriesLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([...SERVICE_CATEGORIES]);
+  const [categoryDescriptions, setCategoryDescriptions] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let active = true;
-    loadHomeData()
+    const applyHomeData = (data: Awaited<ReturnType<typeof loadHomeData>>) => {
+      if (!active) return;
+      setDiscoveries(data.discoveries.side);
+      setHasMoreDiscoveries(data.discoveries.sideHasMore);
+      if (data.categories.length) setCategories(data.categories);
+      setCategoryDescriptions(data.categoryDescriptions ?? {});
+    };
+    const loadDirectory = (fresh = false) => loadHomeData({ fresh })
       .then((data) => {
-        if (!active) return;
-        setDiscoveries(data.discoveries.side);
-        setHasMoreDiscoveries(data.discoveries.sideHasMore);
-        if (data.categories.length) setCategories(data.categories);
+        applyHomeData(data);
       })
       .catch(() => { if (active) setDiscoveries([]); })
       .finally(() => { if (active) setDiscoveriesLoading(false); });
-    return () => { active = false; };
+    void loadDirectory();
+    const refreshCategories = () => { void loadDirectory(true); };
+    window.addEventListener("hafi:categories-updated", refreshCategories);
+    return () => { active = false; window.removeEventListener("hafi:categories-updated", refreshCategories); };
   }, []);
 
   useEffect(() => {
@@ -120,7 +128,7 @@ export function ServiceExplorer() {
         {!searched && <div className="hafi-directory-grid">
           <section>
             <div className="hafi-section-heading"><h2>{copy.categoryHeading}</h2></div>
-            <div className="hafi-category-list">{categories.map((value) => <button className="hafi-category-row" key={value} onClick={() => { setCategory(value); search({ category: value }); }} type="button"><span><span className="hafi-category-name">{categoryLabel(value, locale)}</span><span className="hafi-category-description">{categoryDescription(value, locale)}</span></span><ArrowRight aria-hidden="true" className="hafi-category-arrow" size={17} /></button>)}</div>
+            <div className="hafi-category-list">{categories.map((value) => <button className="hafi-category-row" key={value} onClick={() => { setCategory(value); search({ category: value }); }} type="button"><span><span className="hafi-category-name">{categoryLabel(value, locale)}</span><span className="hafi-category-description">{categoryDescription(value, locale, categoryDescriptions[value])}</span></span><ArrowRight aria-hidden="true" className="hafi-category-arrow" size={17} /></button>)}</div>
           </section>
           <DiscoveryRail copy={copy} hasMore={hasMoreDiscoveries} items={discoveries} loading={discoveriesLoading} />
         </div>}

@@ -12,6 +12,12 @@ import {
 export const serviceCategory = pgEnum("ServiceCategory", [
   "HOSPITAL", "PHARMACY", "RESTAURANT", "GARAGE", "HOTEL", "SCHOOL", "BANK", "SHOP", "MARKET",
 ]);
+export const serviceCategoryDescriptions = pgTable("ServiceCategoryDescription", {
+  category: text("category").primaryKey(),
+  description: text("description").notNull(),
+  createdAt: timestamp("createdAt", { withTimezone: false }).notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt", { withTimezone: false }).notNull().defaultNow(),
+});
 export const userRole = pgEnum("UserRole", ["USER", "AGENT", "PROVINCE_MANAGER", "SUPER_ADMIN"]);
 export const submissionType = pgEnum("SubmissionType", ["CREATE", "LOCATION_CHANGE"]);
 export const submissionStatus = pgEnum("SubmissionStatus", ["PENDING", "APPROVED", "REJECTED"]);

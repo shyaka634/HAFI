@@ -2,6 +2,7 @@ import type { PublicDiscovery } from "@/lib/public-discovery";
 
 export type HomeData = {
   categories: string[];
+  categoryDescriptions: Record<string, string>;
   discoveries: {
     top: PublicDiscovery[];
     topSecondary: PublicDiscovery[];

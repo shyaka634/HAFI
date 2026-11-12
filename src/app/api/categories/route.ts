@@ -2,15 +2,16 @@ import { NextResponse } from "next/server";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
-import { auditLogs } from "@/lib/db/schema";
+import { auditLogs, serviceCategoryDescriptions } from "@/lib/db/schema";
 import { getCurrentUser } from "@/lib/auth/session";
 import { isSuperAdmin } from "@/lib/permissions";
 import { createId } from "@/lib/utils";
-import { CATEGORY_VALUE_PATTERN, categoryValueFromName, listServiceCategories } from "@/features/services/service-categories";
+import { CATEGORY_VALUE_PATTERN, categoryValueFromName, listServiceCategories, listServiceCategoryDetails } from "@/features/services/service-categories";
 import { enforceRateLimit } from "@/lib/rate-limit";
 
 const categorySchema = z.object({
   name: z.string().trim().min(2, "Enter a category name.").max(50, "Use a category name of 50 characters or fewer.").regex(/[A-Za-z0-9]/, "Enter a category name with letters or numbers."),
+  description: z.string().trim().min(2, "Enter a category description.").max(240, "Use a description of 240 characters or fewer."),
 });
 
 export async function GET(request: Request) {
@@ -18,7 +19,12 @@ export async function GET(request: Request) {
   if (limited) return limited;
   // The home page calls this public endpoint; cache it briefly at the CDN.
   try {
-    return NextResponse.json({ categories: await listServiceCategories() }, { headers: { "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300" } });
+    const details = await listServiceCategoryDetails();
+    const includeDetails = new URL(request.url).searchParams.get("details") === "true";
+    return NextResponse.json(
+      { categories: includeDetails ? details : details.map((category) => category.value) },
+      { headers: { "Cache-Control": includeDetails ? "no-store" : "public, s-maxage=60, stale-while-revalidate=300" } },
+    );
   } catch {
     return NextResponse.json({ error: "Categories could not be loaded." }, { status: 503 });
   }
@@ -45,13 +51,18 @@ export async function POST(request: Request) {
     // `value` is constrained to capital letters, numbers, and underscores
     // before it is embedded in this PostgreSQL enum statement.
     await db.execute(sql.raw(`ALTER TYPE "ServiceCategory" ADD VALUE IF NOT EXISTS '${value}'`));
+    await db.insert(serviceCategoryDescriptions).values({
+      category: value,
+      description: parsed.data.description,
+      updatedAt: new Date(),
+    });
     await db.insert(auditLogs).values({
       id: createId(),
       actorId: user!.id,
       action: "SERVICE_CATEGORY_CREATED",
       entityType: "ServiceCategory",
       entityId: value,
-      details: { name: parsed.data.name },
+      details: { name: parsed.data.name, description: parsed.data.description },
     });
 
     return NextResponse.json({ value }, { status: 201 });

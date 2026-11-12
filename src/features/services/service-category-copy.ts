@@ -27,7 +27,7 @@ export function categoryLabel(category: ServiceCategory, locale: Locale) {
   return serviceCategoryCopy[category as BuiltInServiceCategory]?.[locale].name ?? fallbackLabel(category);
 }
 
-export function categoryDescription(category: ServiceCategory, locale: Locale) {
-  return serviceCategoryCopy[category as BuiltInServiceCategory]?.[locale].description
-    ?? (locale === "rw" ? "Serivisi z'ingenzi zo mu gace" : "Trusted local services");
+export function categoryDescription(category: ServiceCategory, locale: Locale, customDescription?: string) {
+  const builtInDescription = serviceCategoryCopy[category as BuiltInServiceCategory]?.[locale].description;
+  return customDescription?.trim() || builtInDescription || (locale === "rw" ? "Serivisi z'ingenzi zo mu gace" : "Trusted local services");
 }

@@ -1,6 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { NextRequest, NextResponse } from "next/server";
-import { listServiceCategories } from "@/features/services/service-categories";
+import { listServiceCategoryDetails } from "@/features/services/service-categories";
 import { db } from "@/lib/db";
 import { discoveries } from "@/lib/db/schema";
 import { publicDiscovery } from "@/lib/public-discovery";
@@ -35,8 +35,8 @@ export async function GET(request: NextRequest) {
   if (limited) return limited;
 
   try {
-    const [categories, top, topSecondary, side] = await Promise.all([
-      listServiceCategories(),
+    const [categoryDetails, top, topSecondary, side] = await Promise.all([
+      listServiceCategoryDetails(),
       publishedDiscoveries("TOP", 1),
       publishedDiscoveries("TOP_SECONDARY", 6),
       // Fetch one extra item to know whether the directory has more to show.
@@ -45,7 +45,11 @@ export async function GET(request: NextRequest) {
     const refreshRequested = request.nextUrl.searchParams.has("refresh");
 
     return NextResponse.json(
-      { categories, discoveries: { top, topSecondary, side: side.slice(0, 15), sideHasMore: side.length > 15 } },
+      {
+        categories: categoryDetails.map((category) => category.value),
+        categoryDescriptions: Object.fromEntries(categoryDetails.map((category) => [category.value, category.description])),
+        discoveries: { top, topSecondary, side: side.slice(0, 15), sideHasMore: side.length > 15 },
+      },
       { headers: { "Cache-Control": refreshRequested ? "no-store" : "public, s-maxage=60, stale-while-revalidate=300" } },
     );
   } catch {

@@ -1,6 +1,8 @@
 import { sql } from "drizzle-orm";
 import { db } from "@/lib/db";
+import { serviceCategoryDescriptions } from "@/lib/db/schema";
 import { SERVICE_CATEGORIES } from "@/lib/types";
+import { categoryDescription } from "@/features/services/service-category-copy";
 
 export const CATEGORY_VALUE_PATTERN = /^[A-Z][A-Z0-9_]{1,49}$/;
 
@@ -14,6 +16,8 @@ export function categoryValueFromName(name: string) {
     .slice(0, 50);
 }
 
+export type ServiceCategoryDetails = { value: string; description: string };
+
 function orderedCategories(values: string[]) {
   const known = new Set(values);
   return [
@@ -23,6 +27,10 @@ function orderedCategories(values: string[]) {
 }
 
 export async function listServiceCategories() {
+  return (await listServiceCategoryDetails()).map((category) => category.value);
+}
+
+export async function listServiceCategoryDetails(): Promise<ServiceCategoryDetails[]> {
   const result = await db.execute(sql`
     SELECT enum_value.enumlabel AS value
     FROM pg_enum AS enum_value
@@ -33,5 +41,13 @@ export async function listServiceCategories() {
   const values = result.rows
     .map((row) => String((row as { value?: unknown }).value ?? ""))
     .filter((value) => CATEGORY_VALUE_PATTERN.test(value));
-  return orderedCategories(values);
+  const descriptions = await db
+    .select({ category: serviceCategoryDescriptions.category, description: serviceCategoryDescriptions.description })
+    .from(serviceCategoryDescriptions);
+  const descriptionsByCategory = new Map(descriptions.map((item) => [item.category, item.description]));
+
+  return orderedCategories(values).map((value) => ({
+    value,
+    description: descriptionsByCategory.get(value) || categoryDescription(value, "en"),
+  }));
 }
