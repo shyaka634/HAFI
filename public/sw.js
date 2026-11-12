@@ -1,4 +1,4 @@
-const CACHE_NAME = "hafi-v2";
+const CACHE_NAME = "hafi-v3";
 // Do not pre-cache the 2.5 MB decorative map background during installation.
 // It is loaded only after the directory is interactive and then cached normally.
 const APP_SHELL = ["/", "/offline.html", "/manifest.webmanifest", "/icon.svg"];

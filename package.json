@@ -13,7 +13,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:indexes": "node --env-file=.env.local scripts/apply-performance-indexes.mjs",
-    "db:media-metadata": "node --env-file=.env.local scripts/add-discovery-media-metadata.mjs"
+    "db:media-metadata": "node --env-file=.env.local scripts/add-discovery-media-metadata.mjs",
+    "db:service-about": "node --env-file=.env.local scripts/add-service-about.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",
