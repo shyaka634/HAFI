@@ -8,6 +8,7 @@ export type Service = {
   sector: string | null;
   address: string | null;
   phone: string | null;
+  about: string | null;
   imageBase64: string | null;
   latitude: number;
   longitude: number;

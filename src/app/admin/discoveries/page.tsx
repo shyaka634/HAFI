@@ -49,6 +49,7 @@ export default function AdminDiscoveriesPage() {
   const { user, isLoading: checkingAccess } = useAppSession();
   const [items, setItems] = useState<Discovery[]>([]);
   const [editing, setEditing] = useState<Discovery | null>(null);
+  const [selectedPlacement, setSelectedPlacement] = useState<Placement>("SIDE");
   const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -73,9 +74,8 @@ export default function AdminDiscoveriesPage() {
     }
 
     const file = data.get("mediaFile");
-    // A file input cannot be pre-filled by the browser. When editing an
-    // existing local upload, keep its current media unless a replacement is
-    // selected or a different URL is entered.
+    // Browsers cannot pre-fill file inputs. Keep the saved media unless the
+    // administrator explicitly chooses a replacement file or enters a URL.
     const enteredMediaUrl = String(data.get("mediaUrl") ?? "").trim();
     if (enteredMediaUrl.toLowerCase().startsWith("data:")) {
       setSaving(false);
@@ -104,7 +104,14 @@ export default function AdminDiscoveriesPage() {
         return;
       }
 
-      const sizeMessage = await validateBannerSize(file, placement);
+      let sizeMessage: string;
+      try {
+        sizeMessage = await validateBannerSize(file, placement);
+      } catch {
+        setSaving(false);
+        setNotice("The media dimensions could not be read. Please choose another file.");
+        return;
+      }
       if (sizeMessage) {
         setSaving(false);
         setNotice(sizeMessage);
@@ -138,8 +145,7 @@ export default function AdminDiscoveriesPage() {
     }
 
     const body = {
-      title: String(data.get("title") ?? ""),
-      description: String(data.get("description") ?? ""),
+      ...(placement === "SIDE" ? { title: String(data.get("title") ?? ""), description: String(data.get("description") ?? "") } : {}),
       ...(shouldUpdateMedia ? { imageUrl: mediaUrl } : {}),
       mediaPublicId,
       mediaResourceType,
@@ -156,6 +162,7 @@ export default function AdminDiscoveriesPage() {
     if (!response.ok) return setNotice(result.error ?? "The banner could not be saved.");
     setNotice(editing ? "Banner updated." : `${placementInfo[placement].label} published.`);
     setEditing(null);
+    setSelectedPlacement("SIDE");
     form.reset();
     notifyHeaderBanners();
     load();
@@ -204,26 +211,30 @@ export default function AdminDiscoveriesPage() {
       <Card className="mt-8 p-5 sm:p-6">
         <div className="mb-5 flex items-start justify-between gap-4">
           <div><h2 className="font-extrabold text-ink">{editing ? "Edit banner" : "New banner"}</h2><p className="mt-1 text-sm text-slate-500">Choose the placement first, then select media made for that banner space.</p></div>
-          {editing && <Button onClick={() => setEditing(null)} size="sm" type="button" variant="ghost"><X className="h-4 w-4" />Cancel edit</Button>}
+          {editing && <Button onClick={() => { setEditing(null); setSelectedPlacement("SIDE"); }} size="sm" type="button" variant="ghost"><X className="h-4 w-4" />Cancel edit</Button>}
         </div>
 
         <form className="grid gap-4 sm:grid-cols-2" key={editing?.id ?? "new"} onSubmit={(event) => { event.preventDefault(); save(event.currentTarget); }}>
           <label className="block sm:col-span-2">
             <span className="mb-1.5 block text-sm font-bold text-slate-700">Banner placement</span>
-            <select className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-ink outline-none focus:border-forest-500 focus:ring-4 focus:ring-forest-50" defaultValue={editing?.placement ?? "SIDE"} name="placement">
+            <select className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-ink outline-none focus:border-forest-500 focus:ring-4 focus:ring-forest-50" name="placement" onChange={(event) => setSelectedPlacement(event.target.value as Placement)} value={selectedPlacement}>
               <option value="TOP">Top header banner — very wide media</option>
               <option value="SIDE">Side Discovery banner — landscape media</option>
               <option value="TOP_SECONDARY">Top banner 2 (right)</option>
             </select>
           </label>
-          <Input defaultValue={editing?.title} name="title" placeholder="Banner title (optional)" />
-          <Input defaultValue={editing?.imageBase64.startsWith("data:") ? "" : editing?.imageBase64} name="mediaUrl" placeholder="Public image or video URL (optional)" type="url" />
-          <textarea className="min-h-24 rounded-xl border p-3 text-sm outline-none focus:border-forest-500 focus:ring-4 focus:ring-forest-50 sm:col-span-2" defaultValue={editing?.description} name="description" placeholder="What should people know? (optional)" />
-          <label className="block">
-            <span className="mb-1.5 flex items-center gap-2 text-sm font-bold text-slate-700"><ImagePlus className="h-4 w-4 text-forest-700" />Choose an image or video from this device</span>
-            <input accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/ogg" className="block w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-forest-50 file:px-3 file:py-1.5 file:text-sm file:font-bold file:text-forest-700 hover:file:bg-forest-100" name="mediaFile" type="file" />
-            <span className="mt-1 block text-xs text-slate-500">Images: maximum 2 MB. Videos: MP4, WebM, or Ogg, maximum 8 MB. Device uploads require Cloudinary; no Base64 media is stored. When editing, leave this empty to keep the current media.</span>
-          </label>
+          <Input aria-label="Banner title" className="disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-2" defaultValue={editing?.title} disabled={selectedPlacement !== "SIDE"} name="title" placeholder="Banner title (optional)" />
+          <textarea aria-label="Banner description" className="min-h-24 rounded-xl border p-3 text-sm outline-none focus:border-forest-500 focus:ring-4 focus:ring-forest-50 disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-2" defaultValue={editing?.description} disabled={selectedPlacement !== "SIDE"} name="description" placeholder="What should people know? (optional)" />
+          {selectedPlacement !== "SIDE" && <p className="text-xs text-slate-500 sm:col-span-2">Top banners show media only. Title and description are available for side banners.</p>}
+          {editing ? <div className="sm:col-span-2">
+            <p className="mb-2 text-sm font-bold text-slate-700">Current banner {isDiscoveryVideo(editing.imageBase64) ? "video" : "image"}</p>
+            <div className="aspect-[16/7] max-w-2xl overflow-hidden rounded-xl border border-slate-200 bg-slate-100"><DiscoveryMedia alt={editing.title || "Current banner media"} className="h-full w-full" controls={isDiscoveryVideo(editing.imageBase64)} fit="contain" imagePreset="side-banner" source={editing.imageBase64} /></div>
+            <p className="mt-2 text-xs text-slate-500">Your current media is saved and will stay in place unless you replace it.</p>
+            <details className="mt-4 rounded-xl border border-slate-200 p-4">
+              <summary className="cursor-pointer text-sm font-bold text-ink">Replace image or video (optional)</summary>
+              <div className="mt-4"><MediaInputs /></div>
+            </details>
+          </div> : <div className="sm:col-span-2"><MediaInputs /></div>}
           <label className="block">
             <span className="mb-1.5 block text-sm font-bold text-slate-700">Optional action link</span>
             <Input defaultValue={editing?.link ?? ""} name="link" placeholder="https://example.com" type="url" />
@@ -243,7 +254,7 @@ export default function AdminDiscoveriesPage() {
                 <div className="min-w-0"><div className="flex flex-wrap items-center gap-2"><p className="truncate font-extrabold text-ink">{item.title}</p><span className="rounded-full bg-forest-50 px-2 py-1 text-[10px] font-bold text-forest-700">{placementInfo[item.placement].label}</span>{isDiscoveryVideo(item.imageBase64) && <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-lake-50 px-2 py-1 text-[10px] font-bold text-lake-600"><Video className="h-3 w-3" />Video</span>}</div><p className="mt-1 max-h-10 overflow-hidden text-sm leading-5 text-slate-500">{item.description}</p></div>
                 <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-bold ${item.published ? "bg-forest-50 text-forest-700" : "bg-slate-100 text-slate-600"}`}>{item.published ? "Published" : "Hidden"}</span>
               </div>
-              <div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => toggle(item)} size="sm" variant="secondary">{item.published ? <><EyeOff className="h-4 w-4" />Hide</> : <><Eye className="h-4 w-4" />Show</>}</Button><Button onClick={() => { setEditing(item); window.scrollTo({ top: 0, behavior: "smooth" }); }} size="sm" variant="secondary"><Pencil className="h-4 w-4" />Edit</Button><Button onClick={() => remove(item)} size="sm" variant="danger"><Trash2 className="h-4 w-4" />Delete</Button></div>
+              <div className="mt-4 flex flex-wrap gap-2"><Button onClick={() => toggle(item)} size="sm" variant="secondary">{item.published ? <><EyeOff className="h-4 w-4" />Hide</> : <><Eye className="h-4 w-4" />Show</>}</Button><Button onClick={() => { setSelectedPlacement(item.placement); setEditing(item); window.scrollTo({ top: 0, behavior: "smooth" }); }} size="sm" variant="secondary"><Pencil className="h-4 w-4" />Edit</Button><Button onClick={() => remove(item)} size="sm" variant="danger"><Trash2 className="h-4 w-4" />Delete</Button></div>
             </div>
           </div>
         </Card>)}
@@ -251,6 +262,21 @@ export default function AdminDiscoveriesPage() {
       {!items.length && <Card className="mt-8 p-10 text-center text-sm text-slate-500">No banners have been created yet.</Card>}
     </div>
   );
+}
+
+function MediaInputs() {
+  return <div className="grid gap-4 sm:grid-cols-2">
+    <label className="block">
+      <span className="mb-1.5 flex items-center gap-2 text-sm font-bold text-slate-700"><ImagePlus className="h-4 w-4 text-forest-700" />Choose an image or video from this device</span>
+      <input accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/ogg" className="block w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-forest-50 file:px-3 file:py-1.5 file:text-sm file:font-bold file:text-forest-700 hover:file:bg-forest-100" name="mediaFile" type="file" />
+      <span className="mt-1 block text-xs text-slate-500">Images: maximum 2 MB. Videos: MP4, WebM, or Ogg, maximum 8 MB. Device uploads require Cloudinary.</span>
+    </label>
+    <label className="block">
+      <span className="mb-1.5 block text-sm font-bold text-slate-700">Or use a public image or video URL</span>
+      <Input name="mediaUrl" placeholder="https://example.com/image.jpg" type="url" />
+      <span className="mt-1 block text-xs text-slate-500">Leave this blank when uploading a file. Base64 media is not supported.</span>
+    </label>
+  </div>;
 }
 
 async function validateBannerSize(file: File, placement: Placement) {

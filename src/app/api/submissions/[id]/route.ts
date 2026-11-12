@@ -21,7 +21,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
   if (!parsed.success) return NextResponse.json({ error: "Choose approve or reject." }, { status: 400 });
 
   if (parsed.data.status === "APPROVED") {
-    const serviceData = { name: submission.name, category: submission.category, district: submission.district, sector: submission.sector, address: submission.address, phone: submission.phone, latitude: submission.latitude, longitude: submission.longitude, updatedAt: new Date() };
+    // A location correction without an About value should not erase an
+    // already-published description. New services can start without one.
+    const about = submission.type === "CREATE" || submission.about ? { about: submission.about } : {};
+    const serviceData = { name: submission.name, category: submission.category, district: submission.district, sector: submission.sector, address: submission.address, phone: submission.phone, latitude: submission.latitude, longitude: submission.longitude, ...about, updatedAt: new Date() };
     if (submission.type === "LOCATION_CHANGE" && submission.targetServiceId) {
       await db.update(services).set({ ...serviceData, ...(submission.imageBase64 ? { imageBase64: submission.imageBase64 } : {}) }).where(eq(services.id, submission.targetServiceId));
     } else {

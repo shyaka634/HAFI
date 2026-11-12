@@ -39,12 +39,13 @@ export async function GET(request: NextRequest) {
       listServiceCategories(),
       publishedDiscoveries("TOP", 1),
       publishedDiscoveries("TOP_SECONDARY", 6),
-      publishedDiscoveries("SIDE", 3),
+      // Fetch one extra item to know whether the directory has more to show.
+      publishedDiscoveries("SIDE", 16),
     ]);
     const refreshRequested = request.nextUrl.searchParams.has("refresh");
 
     return NextResponse.json(
-      { categories, discoveries: { top, topSecondary, side } },
+      { categories, discoveries: { top, topSecondary, side: side.slice(0, 15), sideHasMore: side.length > 15 } },
       { headers: { "Cache-Control": refreshRequested ? "no-store" : "public, s-maxage=60, stale-while-revalidate=300" } },
     );
   } catch {

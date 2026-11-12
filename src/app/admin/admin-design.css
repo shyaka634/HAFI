@@ -1,0 +1,63 @@
+.hafi-admin {
+  --admin-canvas: #f1f7f1;
+  --admin-surface: #fff;
+  --admin-subtle: #eaf2eb;
+  --admin-border: #d9e2d9;
+  --admin-text: #1c2520;
+  --admin-muted: #586b60;
+  --admin-green: #17422c;
+  --admin-action: #17422c;
+  --admin-warning: #825510;
+  --admin-danger: #a22f27;
+  min-height: 65vh;
+  background: var(--admin-canvas);
+  color: var(--admin-text);
+}
+html.dark .hafi-admin {
+  --admin-canvas: #0e1c19;
+  --admin-surface: #172923;
+  --admin-subtle: #20362e;
+  --admin-border: #344a3f;
+  --admin-text: #eef5ef;
+  --admin-muted: #b2c3b7;
+  --admin-green: #9fe1ba;
+  --admin-action: #317b53;
+  --admin-warning: #f1cc7e;
+  --admin-danger: #ffb4a9;
+}
+
+/* Keep the existing forms and actions, but use the same surfaces as the dashboard. */
+.hafi-admin h1 { margin-top: 0; color: var(--admin-text) !important; font-size: clamp(24px, 3vw, 30px); font-weight: 700; letter-spacing: -.025em; line-height: 1.25; }
+.hafi-admin h2, .hafi-admin h3 { color: var(--admin-text) !important; font-weight: 700; }
+.hafi-admin .font-extrabold { font-weight: 700; }
+.hafi-admin .text-slate-400, .hafi-admin .text-slate-500,
+.hafi-admin .text-slate-600, .hafi-admin .text-slate-700,
+html.dark .hafi-admin .text-slate-400, html.dark .hafi-admin .text-slate-500,
+html.dark .hafi-admin .text-slate-600, html.dark .hafi-admin .text-slate-700 { color: var(--admin-muted) !important; }
+.hafi-admin .text-ink, html.dark .hafi-admin .text-ink { color: var(--admin-text) !important; }
+.hafi-admin .text-forest-700, html.dark .hafi-admin .text-forest-700 { color: var(--admin-green) !important; }
+.hafi-admin .text-amber-700, html.dark .hafi-admin .text-amber-700 { color: var(--admin-warning) !important; }
+.hafi-admin .text-red-700, html.dark .hafi-admin .text-red-700 { color: var(--admin-danger) !important; }
+.hafi-admin .rounded-2xl.border.bg-white,
+html:not(.dark) .hafi-admin .rounded-2xl.border.bg-white,
+html.dark .hafi-admin .rounded-2xl.border.bg-white { border-color: var(--admin-border) !important; border-radius: 6px; background: var(--admin-surface) !important; box-shadow: none; }
+.hafi-admin .border, .hafi-admin .border-t, .hafi-admin .border-b,
+html.dark .hafi-admin .border, html.dark .hafi-admin .border-t,
+html.dark .hafi-admin .border-b { border-color: var(--admin-border) !important; }
+.hafi-admin .bg-slate-50, .hafi-admin .bg-slate-100,
+.hafi-admin .bg-forest-50, .hafi-admin .bg-lake-50,
+html.dark .hafi-admin .bg-slate-50, html.dark .hafi-admin .bg-slate-100,
+html.dark .hafi-admin .bg-forest-50, html.dark .hafi-admin .bg-lake-50 { background: var(--admin-subtle) !important; }
+.hafi-admin .text-lake-600, html.dark .hafi-admin .text-lake-600 { color: var(--admin-green) !important; }
+.hafi-admin input:not([type="checkbox"]):not([type="radio"]), .hafi-admin select, .hafi-admin textarea,
+html.dark .hafi-admin input:not([type="checkbox"]):not([type="radio"]), html.dark .hafi-admin select, html.dark .hafi-admin textarea { border-color: var(--admin-border) !important; border-radius: 5px; background: var(--admin-surface) !important; color: var(--admin-text) !important; }
+.hafi-admin input::placeholder, .hafi-admin textarea::placeholder { color: var(--admin-muted); opacity: .8; }
+.hafi-admin button, .hafi-admin a.rounded-xl { border-radius: 5px; }
+.hafi-admin button.bg-forest-600 { background: var(--admin-action); }
+.hafi-admin button.bg-forest-600:hover { filter: brightness(.92); }
+.hafi-admin button.bg-white, .hafi-admin a.bg-white,
+html.dark .hafi-admin button.bg-white, html.dark .hafi-admin a.bg-white { border-color: var(--admin-border) !important; background: var(--admin-surface) !important; color: var(--admin-text) !important; }
+.hafi-admin button.bg-white:hover, .hafi-admin a.bg-white:hover,
+html.dark .hafi-admin button.bg-white:hover, html.dark .hafi-admin a.bg-white:hover { background: var(--admin-subtle) !important; }
+.hafi-admin span.grid.h-12.w-12, .hafi-admin span.grid.h-10.w-10 { display: none; }
+.hafi-admin :focus-visible { outline: 2px solid var(--admin-green); outline-offset: 2px; }

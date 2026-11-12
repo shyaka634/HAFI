@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
   }
   const id = createId();
-  await db.insert(serviceSubmissions).values({ id, ...submissionData, category: data.category as never, imageBase64: photoUrl || null, sector: data.sector || null, address: data.address || null, phone: data.phone || null, notes: data.notes || null, targetServiceId: data.targetServiceId || null, submittedBy: user.id, updatedAt: new Date() });
+  await db.insert(serviceSubmissions).values({ id, ...submissionData, category: data.category as never, imageBase64: photoUrl || null, sector: data.sector || null, address: data.address || null, phone: data.phone || null, about: data.about || null, notes: data.notes || null, targetServiceId: data.targetServiceId || null, submittedBy: user.id, updatedAt: new Date() });
   await db.insert(auditLogs).values({ id: createId(), actorId: user.id, action: "SUBMISSION_CREATED", entityType: "ServiceSubmission", entityId: id, details: { district: data.district, type: data.type, hasPhoto: Boolean(photoUrl) } });
   return NextResponse.json({ id }, { status: 201 });
 }

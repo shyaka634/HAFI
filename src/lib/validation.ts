@@ -44,6 +44,7 @@ export const submissionSchema = z.object({
   sector: optionalText(100),
   address: optionalText(240),
   phone: optionalText(30),
+  about: optionalText(1000),
   photoUrl: z.preprocess(
     (value) => value === "" ? undefined : value,
     z.string().trim().refine(isSafeRemoteImageUrl, "Use a valid place photo URL.").optional(),
@@ -62,6 +63,13 @@ export const submissionSchema = z.object({
 export const reviewSchema = z.object({
   status: z.enum(["APPROVED", "REJECTED"]),
   reviewNote: optionalText(1000),
+});
+
+export const feedbackSchema = z.object({
+  message: requiredText(1000),
+  name: requiredText(100),
+  email: z.string().trim().toLowerCase().email().max(320),
+  website: z.string().max(0).optional(),
 });
 
 const staffAssignmentFields = {

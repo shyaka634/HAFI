@@ -2,7 +2,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import { NextResponse } from "next/server";
 
-type RateLimitPolicy = "auth" | "public" | "submission" | "media" | "admin" | "email";
+type RateLimitPolicy = "auth" | "public" | "submission" | "media" | "admin" | "email" | "feedback";
 
 const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN
   ? Redis.fromEnv()
@@ -15,6 +15,7 @@ const limiters = redis ? {
   media: new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(20, "5 m"), prefix: "hafi:media", timeout: 1000, analytics: true }),
   admin: new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(60, "5 m"), prefix: "hafi:admin", timeout: 1000, analytics: true }),
   email: new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5, "1 h"), prefix: "hafi:email", timeout: 1000, analytics: true }),
+  feedback: new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(5, "1 h"), prefix: "hafi:feedback", timeout: 1000, analytics: true }),
 } satisfies Record<RateLimitPolicy, Ratelimit> : null;
 
 function clientIdentifier(request: Request) {

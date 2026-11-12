@@ -8,7 +8,7 @@ import { AccessLoading } from "@/components/access-loading";
 import type { SubmissionStatus, SubmissionType } from "@/lib/types";
 import { useAppSession } from "@/providers/session-provider";
 
-type Submission = { id: string; name: string; category: string; district: string; address: string | null; latitude: number; longitude: number; notes: string | null; type: SubmissionType; status: SubmissionStatus; createdAt: string };
+type Submission = { id: string; name: string; category: string; district: string; address: string | null; about: string | null; latitude: number; longitude: number; notes: string | null; type: SubmissionType; status: SubmissionStatus; createdAt: string };
 
 export default function VerifyPage() {
   const { user, isLoading: checkingAccess } = useAppSession(); const [items, setItems] = useState<Submission[]>([]); const [notice, setNotice] = useState("");

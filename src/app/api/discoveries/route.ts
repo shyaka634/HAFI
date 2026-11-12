@@ -40,16 +40,26 @@ export async function GET(request: NextRequest) {
   const placementValue = request.nextUrl.searchParams.get("placement");
   const placement = placementValue === null ? null : placementSchema.safeParse(placementValue);
   if (placement && !placement.success) return NextResponse.json({ error: "Choose a top banner, second top banner, or side banner placement." }, { status: 400 });
-  const query = db.select().from(discoveries).orderBy(desc(discoveries.createdAt));
+  const offsetValue = request.nextUrl.searchParams.get("offset");
+  const offset = offsetValue === null ? 0 : Number(offsetValue);
+  if (!showAll && offsetValue !== null && (!/^\d+$/.test(offsetValue) || !Number.isSafeInteger(offset))) {
+    return NextResponse.json({ error: "Choose a valid discovery offset." }, { status: 400 });
+  }
+  const query = db.select().from(discoveries).orderBy(desc(discoveries.createdAt), desc(discoveries.id));
   const filters = [
     ...(showAll ? [] : [eq(discoveries.published, true)]),
     ...(placement && placement.success ? [eq(discoveries.placement, placement.data)] : []),
   ];
-  const rows = filters.length ? await query.where(and(...filters)).limit(24) : await query.limit(24);
+  // Read one extra published item so the page can offer another page without
+  // downloading the entire collection or changing the existing array shape.
+  const limit = showAll ? 24 : 25;
+  const rows = filters.length
+    ? await query.where(and(...filters)).limit(limit).offset(showAll ? 0 : offset)
+    : await query.limit(limit).offset(showAll ? 0 : offset);
   // Keep full media sources available in the protected admin screen. Public
   // responses use a cacheable media URL for old Base64 images so they do not
   // inflate every API response by megabytes.
-  return NextResponse.json(showAll ? rows : rows.map(publicDiscovery), showAll ? undefined : { headers: { "Cache-Control": refreshRequested ? "no-store" : "public, s-maxage=60, stale-while-revalidate=300" } });
+  return NextResponse.json(showAll ? rows : rows.slice(0, 24).map(publicDiscovery), showAll ? undefined : { headers: { "Cache-Control": refreshRequested ? "no-store" : "public, s-maxage=60, stale-while-revalidate=300", "X-Has-More": String(rows.length > 24) } });
 }
 
 export async function POST(request: NextRequest) {

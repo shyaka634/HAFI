@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
-import { ImagePlus, MapPinPlus } from "lucide-react";
+import { ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { SERVICE_CATEGORIES, type ServiceCategory } from "@/lib/types";
 import { categoryLabel } from "@/features/services/service-category-copy";
 import { useAppSession } from "@/providers/session-provider";
+import "./submit-design.css";
 
 const initialForm = {
   type: "CREATE" as "CREATE" | "LOCATION_CHANGE",
@@ -18,6 +19,7 @@ const initialForm = {
   sector: "",
   address: "",
   phone: "",
+  about: "",
   latitude: "",
   longitude: "",
   notes: "",
@@ -231,11 +233,9 @@ export default function SubmitServicePage() {
   }
 
   return (
+    <div className="hafi-submit">
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <div className="max-w-xl">
-        <span className="grid h-12 w-12 place-items-center rounded-2xl bg-forest-50 text-forest-700">
-          <MapPinPlus className="h-6 w-6" />
-        </span>
+      <div className="hafi-submit-heading max-w-xl">
         <h1 className="mt-5 text-3xl font-extrabold text-ink">Submit a service update</h1>
         <p className="mt-2 text-slate-500">
           New locations and corrections are reviewed by the manager for your province before publication.
@@ -271,6 +271,12 @@ export default function SubmitServicePage() {
             <Button type="button" variant="secondary" onClick={useCurrentLocation}>Use current GPS location</Button>
           </div>
           <div className="sm:col-span-2">
+            <Field label="About this service">
+              <textarea maxLength={1000} value={form.about} onChange={(event) => update("about", event.target.value)} className="min-h-28 w-full rounded-xl border bg-white p-3 text-sm outline-none focus:border-forest-500 focus:ring-4 focus:ring-forest-50" placeholder="Describe the service, what it offers, and anything visitors should know." />
+              <span className="mt-1 block text-xs text-slate-500">Optional. This description will appear publicly on the service card after approval.</span>
+            </Field>
+          </div>
+          <div className="sm:col-span-2">
             <Field label={form.type === "CREATE" ? "Place photo" : "Updated place photo (optional)"}>
               <span className="mb-2 flex items-center gap-2 text-xs text-slate-500"><ImagePlus className="h-4 w-4 text-forest-700" />Add a clear photo of the building, sign, entrance, or place.</span>
               <input accept="image/png,image/jpeg,image/webp,image/gif" className="block w-full cursor-pointer rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-forest-50 file:px-3 file:py-1.5 file:text-sm file:font-bold file:text-forest-700 hover:file:bg-forest-100" key={photoInputKey} onChange={choosePhoto} required={form.type === "CREATE"} type="file" />
@@ -290,6 +296,7 @@ export default function SubmitServicePage() {
           <div className="sm:col-span-2"><Button type="submit" disabled={saving}>{saving ? "Sending…" : "Submit for review"}</Button></div>
         </form>
       </Card>
+    </div>
     </div>
   );
 }

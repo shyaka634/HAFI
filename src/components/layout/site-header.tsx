@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ChevronDown, ChevronUp, Globe2, Menu, Moon, Sparkles, Sun, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Globe2, Menu, MessageCircle, Moon, Sun, X } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
 import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
@@ -11,12 +12,14 @@ import { useLocale } from "@/providers/locale-provider";
 import { useAppSession } from "@/providers/session-provider";
 import { loadHomeData } from "@/lib/home-data-client";
 import type { PublicDiscovery } from "@/lib/public-discovery";
+import "./site-header-design.css";
 
 type HeaderDiscovery = PublicDiscovery;
 
 type TopPlacement = "TOP" | "TOP_SECONDARY";
 
 export function SiteHeader() {
+  const pathname = usePathname();
   const { locale, setLocale, t } = useLocale();
   const { clearSession, user } = useAppSession();
   const [open, setOpen] = useState(false);
@@ -104,12 +107,46 @@ export function SiteHeader() {
   const themeLabel = theme === "dark" ? t("useLightMode") : t("useDarkMode");
   const navigationLabel = navigationVisible ? t("hideNavigation") : t("showNavigation");
 
+  if (pathname === "/") return (
+    <>
+      <header className="hafi-home-header">
+        <div className="hafi-home-header-inner">
+          <Link className="hafi-home-brand" href="/" onClick={() => setOpen(false)}>
+            <BrandMark className="h-8 w-8 shrink-0" />
+            <span><strong>Hafi</strong><small>{t("brandTagline")}</small></span>
+          </Link>
+          {navigationVisible && <nav aria-label={t("toggleNavigation")} className="hafi-home-nav">
+            {links.map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}
+          </nav>}
+          <div className="hafi-home-header-actions">
+            <button aria-label={navigationLabel} aria-pressed={navigationVisible} className="hafi-header-icon" onClick={toggleNavigationVisibility} title={navigationLabel} type="button">{navigationVisible ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</button>
+            {navigationVisible && <>
+              <button aria-label={themeLabel} className="hafi-header-icon" onClick={() => applyTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} type="button">{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
+              <div aria-label={t("language")} className="hafi-language" role="group"><button aria-pressed={locale === "en"} onClick={() => setLocale("en")} type="button">EN</button><button aria-pressed={locale === "rw"} onClick={() => setLocale("rw")} type="button">RW</button></div>
+              {user ? <button className="hafi-header-signin" onClick={signOut} type="button">{t("signOut")}</button> : <Link className="hafi-header-signin" href="/sign-in">{t("signIn")}</Link>}
+              <button aria-expanded={open} aria-label={t("toggleNavigation")} className="hafi-header-icon hafi-mobile-menu" onClick={() => setOpen(!open)} type="button">{open ? <X size={18} /> : <Menu size={18} />}</button>
+            </>}
+          </div>
+        </div>
+        {navigationVisible && open && <nav aria-label={t("toggleNavigation")} className="hafi-home-mobile-nav">{links.map((link) => <Link href={link.href} key={link.href} onClick={() => setOpen(false)}>{link.label}</Link>)}</nav>}
+      </header>
+      <div className="hafi-home-banners"><div className="hafi-home-banner-grid">
+        <HomeBanner discovery={topBanners.TOP[0] ?? null} fallbackDescription={t("latestOffersDescription")} fallbackTitle={t("latestOffers")} />
+        <HomeBanner discovery={topBanners.TOP_SECONDARY[rightBannerIndex] ?? null} fallbackDescription={t("latestOffersDescription")} fallbackTitle={t("discoveries")} />
+      </div></div>
+      <Link aria-label={t("feedback")} className="hafi-feedback-fab" href="/feedback" title={t("feedback")}>
+        <MessageCircle aria-hidden="true" size={26} />
+        <span>{t("feedback")}</span>
+      </Link>
+    </>
+  );
+
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+    <header className="hafi-interior-header sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div className="mx-auto grid max-w-7xl gap-3 px-4 py-3 sm:px-6 sm:py-4 lg:grid-cols-[auto_auto_minmax(0,1fr)] lg:items-center lg:gap-4 lg:px-8">
         <div className="flex min-w-0 items-center justify-between gap-3 lg:contents">
-          <Link className="flex min-w-0 items-center gap-3" href="/" onClick={() => setOpen(false)}>
-            <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white shadow-lg shadow-forest-600/20">
+          <Link className="hafi-interior-brand flex min-w-0 items-center gap-3" href="/" onClick={() => setOpen(false)}>
+            <span className="hafi-interior-brand-mark grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white shadow-lg shadow-forest-600/20">
               <BrandMark className="h-8 w-8" />
             </span>
             <span className="min-w-0">
@@ -117,42 +154,42 @@ export function SiteHeader() {
               <span className="block -mt-0.5 truncate text-sm font-medium text-forest-700">{t("brandTagline")}</span>
             </span>
           </Link>
-          <button aria-label={navigationLabel} aria-pressed={navigationVisible} className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-forest-200 hover:bg-forest-50 hover:text-forest-700" onClick={toggleNavigationVisibility} title={navigationLabel} type="button">
+          <button aria-label={navigationLabel} aria-pressed={navigationVisible} className="hafi-interior-control grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-forest-200 hover:bg-forest-50 hover:text-forest-700" onClick={toggleNavigationVisibility} title={navigationLabel} type="button">
             {navigationVisible ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
           </button>
         </div>
 
         <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
-          <HeaderBanner actionLabel={t("viewOffer")} discovery={topBanners.TOP[0] ?? null} fallbackDescription={t("latestOffersDescription")} fallbackTitle={t("latestOffers")} label={t("videoBannerAd")} />
-          <HeaderBanner actionLabel={t("viewOffer")} discovery={topBanners.TOP_SECONDARY[rightBannerIndex] ?? null} fallbackDescription={t("latestOffersDescription")} fallbackTitle={t("discoveries")} label={t("videoBannerAd")} />
+          <HeaderBanner discovery={topBanners.TOP[0] ?? null} fallbackDescription={t("latestOffersDescription")} fallbackTitle={t("latestOffers")} />
+          <HeaderBanner discovery={topBanners.TOP_SECONDARY[rightBannerIndex] ?? null} fallbackDescription={t("latestOffersDescription")} fallbackTitle={t("discoveries")} />
         </div>
       </div>
 
-      {navigationVisible ? <div className="border-t border-slate-200/80 bg-white/75">
+      {navigationVisible ? <div className="hafi-interior-nav-bar border-t border-slate-200/80 bg-white/75">
         <div className="mx-auto flex min-h-[62px] max-w-7xl items-center gap-3 px-4 py-2 sm:px-6 lg:px-8">
-          <nav className="hidden min-w-0 items-center gap-1 lg:flex">
+          <nav className="hafi-interior-links hidden min-w-0 items-center gap-1 lg:flex">
             {links.map((link) => <Link className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-ink" href={link.href} key={link.href}>{link.label}</Link>)}
           </nav>
           <div className="ml-auto flex items-center gap-2">
-            <button aria-label={themeLabel} className="grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-forest-200 hover:bg-forest-50 hover:text-forest-700" onClick={() => applyTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} type="button">
+            <button aria-label={themeLabel} className="hafi-interior-control grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-forest-200 hover:bg-forest-50 hover:text-forest-700" onClick={() => applyTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} type="button">
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
             <label className="sr-only">{t("language")}</label>
-            <div className="hidden items-center gap-1 rounded-lg border border-slate-200 bg-white p-1 sm:flex">
+            <div className="hafi-interior-language hidden items-center gap-1 rounded-lg border border-slate-200 bg-white p-1 sm:flex">
               <Globe2 className="ml-1 h-4 w-4 text-slate-500" />
               <button className={`rounded-md px-2 py-1 text-xs font-bold ${locale === "en" ? "bg-slate-100 text-ink" : "text-slate-500"}`} onClick={() => setLocale("en")}>EN</button>
               <button className={`rounded-md px-2 py-1 text-xs font-bold ${locale === "rw" ? "bg-slate-100 text-ink" : "text-slate-500"}`} onClick={() => setLocale("rw")}>RW</button>
             </div>
-            {user ? <Button onClick={signOut} size="sm" variant="secondary">{t("signOut")}</Button> : <Link className="text-sm font-bold text-slate-600 hover:text-ink" href="/sign-in">{t("signIn")}</Link>}
-            <button aria-label={t("toggleNavigation")} className="grid h-10 w-10 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden" onClick={() => setOpen(!open)} type="button">
+            {user ? <Button className="hafi-interior-signin" onClick={signOut} size="sm" variant="secondary">{t("signOut")}</Button> : <Link className="hafi-interior-signin text-sm font-bold text-slate-600 hover:text-ink" href="/sign-in">{t("signIn")}</Link>}
+            <button aria-expanded={open} aria-label={t("toggleNavigation")} className="hafi-interior-control grid h-10 w-10 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden" onClick={() => setOpen(!open)} type="button">
               {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
       </div> : null}
 
-      {open ? <div className="border-t border-slate-100 bg-white px-4 py-3 lg:hidden">
-        <nav className="mx-auto flex max-w-7xl flex-col gap-1">
+      {open ? <div className="hafi-interior-mobile border-t border-slate-100 bg-white px-4 py-3 lg:hidden">
+        <nav className="hafi-interior-links mx-auto flex max-w-7xl flex-col gap-1">
           {links.map((link) => <Link className="rounded-lg px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100" href={link.href} key={link.href} onClick={() => setOpen(false)}>{link.label}</Link>)}
           <div className="mt-2 flex items-center gap-2 border-t pt-3 sm:hidden">
             <Button onClick={() => setLocale("en")} size="sm" variant={locale === "en" ? "primary" : "secondary"}>EN</Button>
@@ -164,33 +201,32 @@ export function SiteHeader() {
   );
 }
 
-function HeaderBanner({ actionLabel, discovery, fallbackDescription, fallbackTitle, label }: {
-  actionLabel: string;
+function HomeBanner({ discovery, fallbackDescription, fallbackTitle }: { discovery: HeaderDiscovery | null; fallbackDescription: string; fallbackTitle: string }) {
+  return <a className="hafi-home-banner" href={discovery?.link ?? "/discoveries"} rel={discovery?.link ? "noreferrer" : undefined} target={discovery?.link ? "_blank" : undefined}>
+    {discovery?.imageBase64 ? <span className="hafi-home-banner-media"><DiscoveryMedia alt={fallbackTitle} className="hafi-home-banner-image" fit="cover" imagePreset="header-banner" loading="eager" source={discovery.imageBase64} /></span> : null}
+    {!discovery ? <span className="hafi-home-banner-copy"><strong>{fallbackTitle}</strong><span>{fallbackDescription}</span></span> : null}
+  </a>;
+}
+
+function HeaderBanner({ discovery, fallbackDescription, fallbackTitle }: {
   discovery: HeaderDiscovery | null;
   fallbackDescription: string;
   fallbackTitle: string;
-  label: string;
 }) {
   const href = discovery?.link ?? "/discoveries";
-  const hasBannerCopy = Boolean(discovery?.title || discovery?.description);
 
   return (
     <a
-      className="group relative flex min-h-[112px] min-w-0 overflow-hidden rounded-2xl border border-forest-100 bg-forest-900 transition hover:border-forest-200 sm:min-h-[124px] lg:min-h-[112px]"
+      className="hafi-interior-banner group flex min-h-[112px] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:border-forest-200"
       href={href}
       rel={discovery?.link ? "noreferrer" : undefined}
       target={discovery?.link ? "_blank" : undefined}
     >
-      {discovery?.imageBase64 ? <DiscoveryMedia alt="" className="absolute inset-0 h-full w-full object-fill opacity-100 transition duration-500 group-hover:opacity-100" imagePreset="header-banner" loading="eager" source={discovery.imageBase64} /> : null}
-      {!discovery || hasBannerCopy ? <>
-        <span className="pointer-events-none absolute inset-y-0 left-0 w-4/5 bg-gradient-to-r from-slate-950/75 via-slate-950/35 to-transparent" />
-        <span className="relative flex min-w-0 flex-1 flex-col justify-center px-4 py-4 text-white sm:px-5">
-          <span className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-forest-100"><Sparkles className="h-3.5 w-3.5" />{discovery ? label : fallbackTitle}</span>
-          {discovery?.title ? <span className="mt-1 block truncate text-base font-extrabold sm:text-lg">{discovery.title}</span> : !discovery ? <span className="mt-1 block truncate text-base font-extrabold sm:text-lg">{fallbackTitle}</span> : null}
-          {discovery?.description ? <span className="mt-1 hidden max-h-10 overflow-hidden text-sm leading-5 text-forest-50 sm:block">{discovery.description}</span> : !discovery ? <span className="mt-1 hidden max-h-10 overflow-hidden text-sm leading-5 text-forest-50 sm:block">{fallbackDescription}</span> : null}
-        </span>
-      </> : null}
-      <span className="relative m-auto mr-3 hidden rounded-full bg-white px-3 py-2 text-xs font-bold text-forest-700 shadow-sm transition group-hover:bg-forest-50 2xl:inline">{actionLabel}</span>
+      {discovery?.imageBase64 ? <span className="relative block aspect-[16/5] w-full bg-slate-100"><DiscoveryMedia alt={fallbackTitle} className="absolute inset-0 h-full w-full" fit="cover" imagePreset="header-banner" loading="eager" source={discovery.imageBase64} /></span> : null}
+      {!discovery ? <span className="flex min-w-0 flex-1 flex-col justify-center px-4 py-3">
+        <span className="block break-words text-sm font-bold text-ink">{fallbackTitle}</span>
+        <span className="mt-1 block break-words text-xs leading-5 text-slate-500">{fallbackDescription}</span>
+      </span> : null}
     </a>
   );
 }

@@ -1,19 +1,123 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowUpRight, Sparkles, Video } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { ArrowUpRight } from "lucide-react";
 import { DiscoveryMedia, isDiscoveryVideo } from "@/features/discoveries/components/discovery-media";
+import "./discovery-design.css";
 
-type Discovery = { id: string; title: string; description: string; imageBase64: string; link: string | null };
+type Discovery = {
+  id: string;
+  title: string;
+  description: string;
+  imageBase64: string;
+  link: string | null;
+};
+
+async function fetchDiscoveries(offset: number) {
+  const response = await fetch(`/api/discoveries?offset=${offset}`);
+  if (!response.ok) throw new Error("Could not load discoveries");
+
+  return {
+    items: (await response.json()) as Discovery[],
+    hasMore: response.headers.get("X-Has-More") === "true",
+  };
+}
 
 export default function DiscoveriesPage() {
   const [items, setItems] = useState<Discovery[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [nextOffset, setNextOffset] = useState(0);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("/api/discoveries").then((response) => response.json()).then(setItems).catch(() => setItems([])).finally(() => setLoading(false));
+    let active = true;
+
+    async function loadInitial() {
+      try {
+        const page = await fetchDiscoveries(0);
+        if (!active) return;
+        setItems(page.items);
+        setNextOffset(page.items.length);
+        setHasMore(page.hasMore);
+      } catch {
+        if (active) setError("Could not load discoveries. Please try again.");
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+
+    void loadInitial();
+    return () => { active = false; };
   }, []);
 
-  return <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8"><div className="max-w-2xl"><span className="inline-flex items-center gap-2 rounded-full bg-lake-50 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-lake-600"><Sparkles className="h-3.5 w-3.5" />Local discoveries</span><h1 className="mt-5 text-4xl font-extrabold tracking-tight text-ink">What&apos;s new around Rwanda</h1><p className="mt-4 text-lg leading-7 text-slate-500">Interactive video adverts, offers, openings, and announcements from local organisations.</p></div>{loading ? <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{[1, 2, 3].map((item) => <div className="h-80 animate-pulse rounded-2xl bg-slate-200" key={item} />)}</div> : items.length ? <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{items.map((item) => { const hasBannerCopy = Boolean(item.title || item.description); return <Card className="group overflow-hidden" key={item.id}><div className="aspect-[16/10] bg-slate-950/5"><DiscoveryMedia alt={item.title || "Banner media"} className="h-full w-full transition duration-300 group-hover:scale-105" controls={isDiscoveryVideo(item.imageBase64)} fit="contain" imagePreset="discovery-card" source={item.imageBase64} /></div>{hasBannerCopy || item.link ? <div className="p-6"><div className="flex items-center gap-2">{item.title ? <h2 className="text-lg font-extrabold text-ink">{item.title}</h2> : null}{isDiscoveryVideo(item.imageBase64) && <span className="inline-flex items-center gap-1 rounded-full bg-lake-50 px-2 py-1 text-[10px] font-bold text-lake-600"><Video className="h-3 w-3" />Video</span>}</div>{item.description ? <p className="mt-2 text-sm leading-6 text-slate-500">{item.description}</p> : null}{item.link && <a className="mt-5 inline-flex items-center gap-1 text-sm font-bold text-forest-700 hover:text-forest-900" href={item.link} rel="noreferrer" target="_blank">Learn more <ArrowUpRight className="h-4 w-4" /></a>}</div> : null}</Card>; })}</div> : <Card className="mt-10 p-10 text-center"><p className="font-bold text-ink">No discoveries are published yet.</p><p className="mt-2 text-sm text-slate-500">Check back soon for useful local news and offers.</p></Card>}</div>;
+  async function loadMore() {
+    if (loadingMore) return;
+    setLoadingMore(true);
+    setError("");
+    try {
+      const page = await fetchDiscoveries(nextOffset);
+      setItems((current) => {
+        const existingIds = new Set(current.map((item) => item.id));
+        return [...current, ...page.items.filter((item) => !existingIds.has(item.id))];
+      });
+      setNextOffset(nextOffset + page.items.length);
+      setHasMore(page.hasMore);
+    } catch {
+      setError("Could not load discoveries. Please try again.");
+    } finally {
+      setLoadingMore(false);
+    }
+  }
+
+  return (
+    <div className="discovery-page">
+      <div className="discovery-page-inner">
+      <header className="discovery-page-heading">
+        <p className="discovery-page-label">Local discoveries</p>
+        <h1>What&apos;s new around Rwanda</h1>
+        <p>Offers, openings, videos, and announcements from local organisations.</p>
+      </header>
+
+      {loading ? (
+        <div aria-label="Loading discoveries" className="discovery-page-grid" role="status">
+          {[1, 2, 3].map((item) => <div className="discovery-page-skeleton" key={item} />)}
+        </div>
+      ) : items.length ? (
+        <div className="discovery-page-grid">
+          {items.map((item) => {
+            const hasBannerCopy = Boolean(item.title || item.description);
+            return (
+              <article className="discovery-page-card" key={item.id}>
+                <div className="discovery-page-media">
+                  <DiscoveryMedia alt={item.title || "Banner media"} className="h-full w-full" controls={isDiscoveryVideo(item.imageBase64)} fit="fill" imagePreset="discovery-card" source={item.imageBase64} />
+                </div>
+                {hasBannerCopy || item.link ? (
+                  <div className="discovery-page-copy">
+                    {isDiscoveryVideo(item.imageBase64) && <span className="discovery-page-video">Video</span>}
+                    {item.title ? <h2>{item.title}</h2> : null}
+                    {item.description ? <p>{item.description}</p> : null}
+                    {item.link && <a href={item.link} rel="noreferrer" target="_blank">Learn more <ArrowUpRight aria-hidden="true" size={15} /></a>}
+                  </div>
+                ) : null}
+              </article>
+            );
+          })}
+        </div>
+      ) : !error ? (
+        <div className="discovery-page-empty"><p>No discoveries are published yet.</p><p>Check back soon for useful local news and offers.</p></div>
+      ) : null}
+
+      {error && <p className="discovery-page-error" role="alert">{error}</p>}
+      {!loading && (hasMore || (error && items.length === 0)) && (
+        <div className="discovery-page-more">
+          <button disabled={loadingMore} onClick={() => void loadMore()} type="button">
+            {loadingMore ? "Loading..." : error && items.length === 0 ? "Try again" : "Load more"}
+          </button>
+        </div>
+      )}
+      </div>
+    </div>
+  );
 }

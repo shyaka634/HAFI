@@ -6,6 +6,7 @@ export type HomeData = {
     top: PublicDiscovery[];
     topSecondary: PublicDiscovery[];
     side: PublicDiscovery[];
+    sideHasMore: boolean;
   };
 };
 
@@ -16,7 +17,8 @@ export async function loadHomeData({ fresh = false }: { fresh?: boolean } = {}):
   if (!fresh && cachedData) return cachedData;
   if (!fresh && loadingData) return loadingData;
 
-  const request = fetch(`/api/home${fresh ? `?refresh=${Date.now()}` : ""}`, fresh ? { cache: "no-store" } : undefined)
+  // Version the URL so previously cached shorter banner lists are not reused.
+  const request = fetch(`/api/home?content=side15${fresh ? `&refresh=${Date.now()}` : ""}`, fresh ? { cache: "no-store" } : undefined)
     .then(async (response) => {
       if (!response.ok) throw new Error("Home content is unavailable.");
       return response.json() as Promise<HomeData>;

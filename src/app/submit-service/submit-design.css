@@ -1,0 +1,53 @@
+.hafi-submit {
+  --submit-canvas: #f1f7f1;
+  --submit-surface: #fff;
+  --submit-subtle: #eaf2eb;
+  --submit-border: #d9e2d9;
+  --submit-text: #1c2520;
+  --submit-muted: #586b60;
+  --submit-green: #17422c;
+  --submit-action: #17422c;
+  --submit-warning: #825510;
+  --submit-error: #a22f27;
+  min-height: 65vh;
+  background: var(--submit-canvas);
+  color: var(--submit-text);
+}
+html.dark .hafi-submit {
+  --submit-canvas: #0e1c19;
+  --submit-surface: #172923;
+  --submit-subtle: #20362e;
+  --submit-border: #344a3f;
+  --submit-text: #eef5ef;
+  --submit-muted: #b2c3b7;
+  --submit-green: #9fe1ba;
+  --submit-action: #317b53;
+  --submit-warning: #f1cc7e;
+  --submit-error: #ffb4a9;
+}
+.hafi-submit-heading { padding-bottom: 20px; border-bottom: 1px solid var(--submit-border); }
+.hafi-submit-heading h1 { margin-top: 0; color: var(--submit-text) !important; font-size: clamp(24px, 3vw, 30px); font-weight: 700; letter-spacing: -.025em; line-height: 1.25; }
+.hafi-submit-heading p { color: var(--submit-muted) !important; font-size: 14px; line-height: 1.6; }
+.hafi-submit .rounded-2xl.border.bg-white,
+html:not(.dark) .hafi-submit .rounded-2xl.border.bg-white,
+html.dark .hafi-submit .rounded-2xl.border.bg-white { border-color: var(--submit-border) !important; border-radius: 6px; background: var(--submit-surface) !important; box-shadow: none; }
+.hafi-submit label > span:first-child { color: var(--submit-text) !important; font-weight: 600; }
+.hafi-submit .text-slate-500, .hafi-submit .text-slate-600,
+html.dark .hafi-submit .text-slate-500, html.dark .hafi-submit .text-slate-600 { color: var(--submit-muted) !important; }
+.hafi-submit .text-ink, html.dark .hafi-submit .text-ink { color: var(--submit-text) !important; }
+.hafi-submit .text-forest-700, html.dark .hafi-submit .text-forest-700 { color: var(--submit-green) !important; }
+.hafi-submit .text-amber-700, html.dark .hafi-submit .text-amber-700 { color: var(--submit-warning) !important; }
+.hafi-submit .text-red-600, html.dark .hafi-submit .text-red-600 { color: var(--submit-error) !important; }
+.hafi-submit input, .hafi-submit select, .hafi-submit textarea,
+html.dark .hafi-submit input, html.dark .hafi-submit select, html.dark .hafi-submit textarea { border-color: var(--submit-border) !important; border-radius: 5px; background: var(--submit-surface) !important; color: var(--submit-text) !important; }
+.hafi-submit input::placeholder, .hafi-submit textarea::placeholder { color: var(--submit-muted); opacity: .8; }
+.hafi-submit input:disabled { opacity: .75; }
+.hafi-submit input[type="file"]::file-selector-button { border-radius: 5px; background: var(--submit-subtle); color: var(--submit-green); }
+.hafi-submit button { border-radius: 5px; }
+.hafi-submit button.bg-forest-600 { background: var(--submit-action); }
+.hafi-submit button.bg-forest-600:hover { filter: brightness(.92); }
+.hafi-submit button.bg-white, html.dark .hafi-submit button.bg-white { border-color: var(--submit-border) !important; background: var(--submit-surface) !important; color: var(--submit-text) !important; }
+.hafi-submit button.bg-white:hover, html.dark .hafi-submit button.bg-white:hover { background: var(--submit-subtle) !important; }
+.hafi-submit [role="listbox"], html.dark .hafi-submit [role="listbox"] { border-color: var(--submit-border) !important; border-radius: 5px; background: var(--submit-surface) !important; }
+.hafi-submit [role="option"]:hover, .hafi-submit [role="option"]:focus { background: var(--submit-subtle) !important; }
+.hafi-submit :focus-visible { outline: 2px solid var(--submit-green); outline-offset: 2px; }

@@ -1,0 +1,47 @@
+.hafi-feedback {
+  --feedback-canvas: #f1f7f1;
+  --feedback-surface: #fff;
+  --feedback-subtle: #eef4fb;
+  --feedback-border: #d9e2d9;
+  --feedback-text: #1c2520;
+  --feedback-muted: #586b60;
+  --feedback-green: #17422c;
+  --feedback-action: #0753a0;
+  --feedback-error: #a22f27;
+  min-height: 65vh;
+  padding: 44px 16px 64px;
+  background: var(--feedback-canvas);
+  color: var(--feedback-text);
+}
+html.dark .hafi-feedback { --feedback-canvas: #0e1c19; --feedback-surface: #172923; --feedback-subtle: #20362e; --feedback-border: #344a3f; --feedback-text: #eef5ef; --feedback-muted: #b2c3b7; --feedback-green: #9fe1ba; --feedback-action: #4d97d8; --feedback-error: #ffb4a9; }
+.hafi-feedback-container { width: min(100%, 980px); margin: 0 auto; }
+.hafi-feedback-back { display: inline-flex; align-items: center; gap: 7px; color: var(--feedback-green); font-size: 14px; font-weight: 700; text-decoration: none; }
+.hafi-feedback-back:hover { text-decoration: underline; }
+.hafi-feedback-heading { display: flex; align-items: center; gap: 14px; margin: 20px 0 24px; }
+.hafi-feedback-icon { display: grid; width: 48px; height: 48px; flex: none; place-items: center; border-radius: 50%; background: var(--feedback-action); color: #fff; }
+.hafi-feedback-heading h1 { font-size: clamp(27px, 4vw, 34px); font-weight: 750; letter-spacing: -.03em; line-height: 1.15; }
+.hafi-feedback-heading p { max-width: 620px; margin-top: 5px; color: var(--feedback-muted); font-size: 14px; line-height: 1.55; }
+.hafi-feedback-form { padding: clamp(20px, 4vw, 30px); border: 1px solid var(--feedback-border); border-radius: 16px; background: var(--feedback-subtle); }
+.hafi-feedback-field { display: block; min-width: 0; }
+.hafi-feedback-field > span { display: block; margin-bottom: 8px; color: var(--feedback-text); font-size: 15px; font-weight: 700; }
+.hafi-feedback-field b { color: var(--feedback-error); }
+.hafi-feedback-field input, .hafi-feedback-field textarea { display: block; box-sizing: border-box; width: 100%; border: 1px solid var(--feedback-border); border-radius: 10px; outline: none; background: var(--feedback-surface); color: var(--feedback-text); font: inherit; font-size: 16px; line-height: 1.5; transition: border-color .16s ease, box-shadow .16s ease; }
+.hafi-feedback-field input { height: 54px; padding: 0 15px; }
+.hafi-feedback-field textarea { min-height: 172px; padding: 15px; resize: vertical; }
+.hafi-feedback-field input::placeholder, .hafi-feedback-field textarea::placeholder { color: var(--feedback-muted); opacity: .72; }
+.hafi-feedback-field input:focus, .hafi-feedback-field textarea:focus { border-color: var(--feedback-action); box-shadow: 0 0 0 3px color-mix(in srgb, var(--feedback-action) 25%, transparent); }
+.hafi-feedback-message-field > small { display: block; margin-top: 7px; color: var(--feedback-muted); font-size: 12px; text-align: right; }
+.hafi-feedback-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-top: 20px; }
+.hafi-feedback-email-hint { display: block; margin-top: 7px; color: var(--feedback-muted); font-size: 12px; line-height: 1.45; }
+.hafi-feedback-trap { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
+.hafi-feedback-success, .hafi-feedback-error { margin-top: 20px; padding: 11px 13px; border-radius: 8px; font-size: 14px; font-weight: 600; }
+.hafi-feedback-success { background: color-mix(in srgb, var(--feedback-green) 12%, transparent); color: var(--feedback-green); }
+.hafi-feedback-error { background: color-mix(in srgb, var(--feedback-error) 12%, transparent); color: var(--feedback-error); }
+.hafi-feedback-actions { display: flex; align-items: center; justify-content: flex-end; gap: 24px; margin-top: 26px; }
+.hafi-feedback-actions > a { color: var(--feedback-action); font-size: 15px; font-weight: 700; text-decoration: none; }
+.hafi-feedback-actions > a:hover { text-decoration: underline; }
+.hafi-feedback-actions button { display: inline-flex; min-height: 48px; align-items: center; justify-content: center; gap: 8px; padding: 0 19px; border: 0; border-radius: 9px; background: var(--feedback-action); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
+.hafi-feedback-actions button:hover:not(:disabled) { filter: brightness(.92); }
+.hafi-feedback-actions button:disabled { cursor: wait; opacity: .65; }
+.hafi-feedback :focus-visible { outline: 2px solid var(--feedback-green); outline-offset: 3px; }
+@media (max-width: 639px) { .hafi-feedback { padding: 28px 16px 48px; } .hafi-feedback-heading { align-items: flex-start; } .hafi-feedback-form { padding: 20px; border-radius: 12px; } .hafi-feedback-fields { grid-template-columns: 1fr; gap: 18px; } .hafi-feedback-actions { justify-content: space-between; gap: 16px; } .hafi-feedback-actions button { padding: 0 14px; } }

@@ -1,11 +1,12 @@
 export type CloudinaryImagePreset = "header-banner" | "side-banner" | "discovery-card" | "discovery-admin" | "service-card" | "service-map";
 
 const transformations: Record<CloudinaryImagePreset, string> = {
-  // Do not crop header or side banners. Their original aspect ratio is kept,
-  // while the delivered image is limited to a sensible high-density width.
-  "header-banner": "c_scale,w_960/f_auto/q_auto:good",
+  // Top banners share a 16:5 card. Crop responsively around the focal area
+  // so every current and future banner fills that card without blank space.
+  "header-banner": "c_fill,g_auto,w_1280,h_400/f_auto/q_auto:good",
   "side-banner": "c_scale,w_960/f_auto/q_auto:good",
-  "discovery-card": "c_fill,g_auto,w_720,h_450/f_auto/q_auto:good",
+  // Keep the complete image within the card's bounds without enlarging small uploads.
+  "discovery-card": "c_limit,w_720,h_450/f_auto/q_auto:good",
   "discovery-admin": "c_fill,g_auto,w_224,h_160/f_auto/q_auto:eco",
   "service-card": "c_fill,g_auto,w_720,h_352/f_auto/q_auto:good",
   "service-map": "c_fill,g_auto,w_416,h_224/f_auto/q_auto:eco",

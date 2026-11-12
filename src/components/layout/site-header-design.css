@@ -1,0 +1,52 @@
+.hafi-interior-header {
+  --header-surface: #fff;
+  --header-subtle: #eaf2eb;
+  --header-border: #d9e2d9;
+  --header-text: #1c2520;
+  --header-muted: #586b60;
+  --header-green: #17422c;
+  color: var(--header-text);
+}
+html.dark .hafi-interior-header {
+  --header-surface: #172923;
+  --header-subtle: #20362e;
+  --header-border: #344a3f;
+  --header-text: #eef5ef;
+  --header-muted: #b2c3b7;
+  --header-green: #9fe1ba;
+}
+html:not(.dark) .hafi-interior-header,
+html.dark .hafi-interior-header { border-color: var(--header-border) !important; background: var(--header-surface) !important; }
+.hafi-interior-header .hafi-interior-nav-bar,
+.hafi-interior-header .hafi-interior-mobile,
+html:not(.dark) .hafi-interior-header .hafi-interior-nav-bar,
+html.dark .hafi-interior-header .hafi-interior-nav-bar,
+html.dark .hafi-interior-header .hafi-interior-mobile { border-color: var(--header-border) !important; background: var(--header-surface) !important; }
+.hafi-interior-header .hafi-interior-brand-mark,
+html.dark .hafi-interior-header .hafi-interior-brand-mark { border-radius: 6px; background: var(--header-surface) !important; box-shadow: none; }
+.hafi-interior-header .hafi-interior-brand .text-ink,
+html.dark .hafi-interior-header .hafi-interior-brand .text-ink { color: var(--header-text) !important; }
+.hafi-interior-header .hafi-interior-brand .text-forest-700,
+html.dark .hafi-interior-header .hafi-interior-brand .text-forest-700 { color: var(--header-muted) !important; }
+.hafi-interior-header .hafi-interior-links a,
+html.dark .hafi-interior-header .hafi-interior-links a { border-radius: 5px; color: var(--header-muted) !important; font-size: 13px; font-weight: 600; }
+.hafi-interior-header .hafi-interior-links a:hover,
+html.dark .hafi-interior-header .hafi-interior-links a:hover { background: var(--header-subtle) !important; color: var(--header-text) !important; }
+.hafi-interior-header .hafi-interior-control,
+.hafi-interior-header .hafi-interior-language,
+.hafi-interior-header .hafi-interior-signin,
+.hafi-interior-header .hafi-interior-banner,
+html.dark .hafi-interior-header .hafi-interior-control,
+html.dark .hafi-interior-header .hafi-interior-language,
+html.dark .hafi-interior-header .hafi-interior-signin,
+html.dark .hafi-interior-header .hafi-interior-banner { border: 1px solid var(--header-border) !important; border-radius: 5px; background: var(--header-surface) !important; color: var(--header-text) !important; }
+.hafi-interior-header .hafi-interior-control:hover,
+.hafi-interior-header .hafi-interior-signin:hover,
+html.dark .hafi-interior-header .hafi-interior-control:hover,
+html.dark .hafi-interior-header .hafi-interior-signin:hover { background: var(--header-subtle) !important; }
+.hafi-interior-header .hafi-interior-signin { display: inline-flex; min-height: 36px; align-items: center; justify-content: center; padding: 0 12px; font-size: 12px; font-weight: 600; }
+.hafi-interior-header .hafi-interior-language button { border-radius: 4px; color: var(--header-muted) !important; }
+.hafi-interior-header .hafi-interior-language button.bg-slate-100,
+html.dark .hafi-interior-header .hafi-interior-language button.bg-slate-100 { background: var(--header-subtle) !important; color: var(--header-text) !important; }
+.hafi-interior-header .hafi-interior-banner:hover { border-color: var(--header-green) !important; }
+.hafi-interior-header :focus-visible { outline: 2px solid var(--header-green); outline-offset: 2px; }
