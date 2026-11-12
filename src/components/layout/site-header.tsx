@@ -104,6 +104,10 @@ export function SiteHeader() {
     });
   }
 
+  function resetHomeSearch() {
+    if (pathname === "/") window.dispatchEvent(new Event("hafi:home-reset"));
+  }
+
   const themeLabel = theme === "dark" ? t("useLightMode") : t("useDarkMode");
   const navigationLabel = navigationVisible ? t("hideNavigation") : t("showNavigation");
 
@@ -111,12 +115,12 @@ export function SiteHeader() {
     <>
       <header className="hafi-home-header">
         <div className="hafi-home-header-inner">
-          <Link className="hafi-home-brand" href="/" onClick={() => setOpen(false)}>
+          <Link className="hafi-home-brand" href="/" onClick={() => { resetHomeSearch(); setOpen(false); }}>
             <BrandMark className="h-8 w-8 shrink-0" />
             <span><strong>Hafi</strong><small>{t("brandTagline")}</small></span>
           </Link>
           {navigationVisible && <nav aria-label={t("toggleNavigation")} className="hafi-home-nav">
-            {links.map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}
+            {links.map((link) => <Link href={link.href} key={link.href} onClick={link.href === "/" ? resetHomeSearch : undefined}>{link.label}</Link>)}
           </nav>}
           <div className="hafi-home-header-actions">
             <button aria-label={navigationLabel} aria-pressed={navigationVisible} className="hafi-header-icon" onClick={toggleNavigationVisibility} title={navigationLabel} type="button">{navigationVisible ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</button>
@@ -128,7 +132,7 @@ export function SiteHeader() {
             </>}
           </div>
         </div>
-        {navigationVisible && open && <nav aria-label={t("toggleNavigation")} className="hafi-home-mobile-nav">{links.map((link) => <Link href={link.href} key={link.href} onClick={() => setOpen(false)}>{link.label}</Link>)}</nav>}
+        {navigationVisible && open && <nav aria-label={t("toggleNavigation")} className="hafi-home-mobile-nav">{links.map((link) => <Link href={link.href} key={link.href} onClick={() => { if (link.href === "/") resetHomeSearch(); setOpen(false); }}>{link.label}</Link>)}</nav>}
       </header>
       <div className="hafi-home-banners"><div className="hafi-home-banner-grid">
         <HomeBanner discovery={topBanners.TOP[0] ?? null} fallbackDescription={t("latestOffersDescription")} fallbackTitle={t("latestOffers")} />
@@ -145,7 +149,7 @@ export function SiteHeader() {
     <header className="hafi-interior-header sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div className="mx-auto grid max-w-7xl gap-3 px-4 py-3 sm:px-6 sm:py-4 lg:grid-cols-[auto_auto_minmax(0,1fr)] lg:items-center lg:gap-4 lg:px-8">
         <div className="flex min-w-0 items-center justify-between gap-3 lg:contents">
-          <Link className="hafi-interior-brand flex min-w-0 items-center gap-3" href="/" onClick={() => setOpen(false)}>
+          <Link className="hafi-interior-brand flex min-w-0 items-center gap-3" href="/" onClick={() => { resetHomeSearch(); setOpen(false); }}>
             <span className="hafi-interior-brand-mark grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white shadow-lg shadow-forest-600/20">
               <BrandMark className="h-8 w-8" />
             </span>
@@ -168,7 +172,7 @@ export function SiteHeader() {
       {navigationVisible ? <div className="hafi-interior-nav-bar border-t border-slate-200/80 bg-white/75">
         <div className="mx-auto flex min-h-[62px] max-w-7xl items-center gap-3 px-4 py-2 sm:px-6 lg:px-8">
           <nav className="hafi-interior-links hidden min-w-0 items-center gap-1 lg:flex">
-            {links.map((link) => <Link className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-ink" href={link.href} key={link.href}>{link.label}</Link>)}
+            {links.map((link) => <Link className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-ink" href={link.href} key={link.href} onClick={link.href === "/" ? resetHomeSearch : undefined}>{link.label}</Link>)}
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <button aria-label={themeLabel} className="hafi-interior-control grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-forest-200 hover:bg-forest-50 hover:text-forest-700" onClick={() => applyTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} type="button">
@@ -190,7 +194,7 @@ export function SiteHeader() {
 
       {open ? <div className="hafi-interior-mobile border-t border-slate-100 bg-white px-4 py-3 lg:hidden">
         <nav className="hafi-interior-links mx-auto flex max-w-7xl flex-col gap-1">
-          {links.map((link) => <Link className="rounded-lg px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100" href={link.href} key={link.href} onClick={() => setOpen(false)}>{link.label}</Link>)}
+          {links.map((link) => <Link className="rounded-lg px-3 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-100" href={link.href} key={link.href} onClick={() => { if (link.href === "/") resetHomeSearch(); setOpen(false); }}>{link.label}</Link>)}
           <div className="mt-2 flex items-center gap-2 border-t pt-3 sm:hidden">
             <Button onClick={() => setLocale("en")} size="sm" variant={locale === "en" ? "primary" : "secondary"}>EN</Button>
             <Button onClick={() => setLocale("rw")} size="sm" variant={locale === "rw" ? "primary" : "secondary"}>RW</Button>

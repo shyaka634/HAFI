@@ -27,7 +27,7 @@ export async function POST(request: Request) {
   const from = process.env.EMAIL_FROM;
   if (!apiKey || !from) return NextResponse.json({ error: "unavailable" }, { status: 503 });
 
-  const { email, message, name } = parsed.data;
+  const { email, message, name, phone } = parsed.data;
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -38,10 +38,10 @@ export async function POST(request: Request) {
     body: JSON.stringify({
       from,
       to: FEEDBACK_RECIPIENTS,
-      reply_to: email,
+      ...(email ? { reply_to: email } : {}),
       subject: "New Hafi feedback",
-      text: `New feedback from ${name} (${email})\n\n${message}`,
-      html: `<h1>New Hafi feedback</h1><p><strong>From:</strong> ${escapeHtml(name)} (${escapeHtml(email)})</p><p><strong>Feedback:</strong></p><p>${escapeHtml(message).replace(/\n/g, "<br />")}</p>`,
+      text: `New feedback from ${name}${phone ? `\nPhone: ${phone}` : ""}${email ? `\nEmail: ${email}` : ""}\n\n${message}`,
+      html: `<h1>New Hafi feedback</h1><p><strong>From:</strong> ${escapeHtml(name)}</p>${phone ? `<p><strong>Phone:</strong> ${escapeHtml(phone)}</p>` : ""}${email ? `<p><strong>Email:</strong> ${escapeHtml(email)}</p>` : ""}<p><strong>Feedback:</strong></p><p>${escapeHtml(message).replace(/\n/g, "<br />")}</p>`,
     }),
   });
 

@@ -59,6 +59,21 @@ export function ServiceExplorer() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    const resetSearch = () => {
+      setName("");
+      setCategory("");
+      setDistrict("");
+      setResults([]);
+      setLocation(null);
+      setError("");
+      setSearched(false);
+      setNearbySearch(false);
+    };
+    window.addEventListener("hafi:home-reset", resetSearch);
+    return () => window.removeEventListener("hafi:home-reset", resetSearch);
+  }, []);
+
   async function search(next: SearchOptions = {}, coordinates = location) {
     setSearching(true); setError("");
     const filters = { category, name, district, ...next };

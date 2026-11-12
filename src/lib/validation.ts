@@ -5,6 +5,18 @@ import { CATEGORY_VALUE_PATTERN } from "@/features/services/service-categories";
 const requiredText = (max: number) => z.string().trim().min(1).max(max);
 const optionalText = (max: number) => z.string().trim().max(max).optional();
 const categoryValueSchema = z.string().trim().regex(CATEGORY_VALUE_PATTERN, "Choose a valid service category.");
+const rwandaMobilePhone = z.string().trim().max(24).transform((value) => value.replace(/[\s()-]/g, "")).refine(
+  (value) => /^(?:\+250|0)7\d{8}$/.test(value),
+  "Enter a valid Rwandan mobile number.",
+);
+const optionalRwandaMobilePhone = z.preprocess(
+  (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+  rwandaMobilePhone.optional(),
+);
+const optionalEmail = z.preprocess(
+  (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+  z.string().trim().toLowerCase().email().max(320).optional(),
+);
 
 
 function isSafeRemoteImageUrl(value: string) {
@@ -68,7 +80,8 @@ export const reviewSchema = z.object({
 export const feedbackSchema = z.object({
   message: requiredText(1000),
   name: requiredText(100),
-  email: z.string().trim().toLowerCase().email().max(320),
+  phone: optionalRwandaMobilePhone,
+  email: optionalEmail,
   website: z.string().max(0).optional(),
 });
 

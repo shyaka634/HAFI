@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { MapPinned, Megaphone, MessageCircle, Phone, ShieldCheck } from "lucide-react";
+import { MapPinned, Megaphone, Phone, ShieldCheck } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { useLocale } from "@/providers/locale-provider";
 
@@ -32,7 +32,6 @@ export function SiteFooter() {
           <p className="font-extrabold text-ink">{locale === "rw" ? "Twandikire" : "Contact us"}</p>
           <div className="mt-2 flex flex-col items-start gap-1.5">
             <a className="inline-flex items-center gap-2 font-semibold text-slate-600 transition hover:text-forest-700" href="tel:+250788684086"><Phone className="h-3.5 w-3.5 text-forest-600" />+250 788 684 086</a>
-            <a className="inline-flex items-center gap-2 font-semibold text-forest-700 transition hover:text-forest-900" href="https://wa.me/250788684086" rel="noreferrer" target="_blank"><MessageCircle className="h-3.5 w-3.5" />WhatsApp</a>
           </div>
         </div>
 

@@ -32,7 +32,9 @@ html.dark .hafi-feedback { --feedback-canvas: #0e1c19; --feedback-surface: #1729
 .hafi-feedback-field input:focus, .hafi-feedback-field textarea:focus { border-color: var(--feedback-action); box-shadow: 0 0 0 3px color-mix(in srgb, var(--feedback-action) 25%, transparent); }
 .hafi-feedback-message-field > small { display: block; margin-top: 7px; color: var(--feedback-muted); font-size: 12px; text-align: right; }
 .hafi-feedback-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-top: 20px; }
-.hafi-feedback-email-hint { display: block; margin-top: 7px; color: var(--feedback-muted); font-size: 12px; line-height: 1.45; }
+.hafi-feedback-email-hint, .hafi-feedback-phone-hint { display: block; margin-top: 7px; color: var(--feedback-muted); font-size: 12px; line-height: 1.45; }
+.hafi-feedback-email-field { grid-column: 1 / -1; }
+.hafi-feedback-email-field > span small { color: var(--feedback-muted); font-size: 12px; font-weight: 400; }
 .hafi-feedback-trap { position: absolute; width: 1px; height: 1px; overflow: hidden; opacity: 0; pointer-events: none; }
 .hafi-feedback-success, .hafi-feedback-error { margin-top: 20px; padding: 11px 13px; border-radius: 8px; font-size: 14px; font-weight: 600; }
 .hafi-feedback-success { background: color-mix(in srgb, var(--feedback-green) 12%, transparent); color: var(--feedback-green); }
