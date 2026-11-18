@@ -7,11 +7,13 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { isSuperAdmin } from "@/lib/permissions";
 import { createId } from "@/lib/utils";
 import { CATEGORY_VALUE_PATTERN, categoryValueFromName, listServiceCategories, listServiceCategoryDetails } from "@/features/services/service-categories";
+import { type ServiceCategory } from "@/lib/types";
+import { categoryLabel } from "@/features/services/service-category-copy";
 import { enforceRateLimit } from "@/lib/rate-limit";
 
 const categorySchema = z.object({
   name: z.string().trim().min(2, "Enter a category name.").max(50, "Use a category name of 50 characters or fewer.").regex(/[A-Za-z0-9]/, "Enter a category name with letters or numbers."),
-  description: z.string().trim().min(2, "Enter a category description.").max(240, "Use a description of 240 characters or fewer."),
+  description: z.string().trim().max(240, "Use a description of 240 characters or fewer.").optional().default(""),
 });
 
 export async function GET(request: Request) {
@@ -46,7 +48,10 @@ export async function POST(request: Request) {
 
   try {
     const categories = await listServiceCategories();
-    if (categories.includes(value)) return NextResponse.json({ error: "That category already exists." }, { status: 409 });
+    const hasEquivalentCategory = categories.some((existing) =>
+      existing === value || categoryValueFromName(categoryLabel(existing as ServiceCategory, "en")) === value,
+    );
+    if (hasEquivalentCategory) return NextResponse.json({ error: "That category already exists." }, { status: 409 });
 
     // `value` is constrained to capital letters, numbers, and underscores
     // before it is embedded in this PostgreSQL enum statement.

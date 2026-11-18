@@ -23,7 +23,7 @@ export default function SignInPage() {
     window.location.assign("/dashboard");
   }
 
-  return <AuthShell title="Welcome back" subtitle="Use the same secure sign-in no matter your role."><form onSubmit={submit} className="space-y-4"><Field label="Email address"><Input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></Field><Field label="Password"><Input type="password" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" /></Field>{error && <p className="text-sm font-semibold text-red-600">{error}</p>}<Button className="w-full" type="submit" disabled={loading}>{loading ? "Signing in…" : "Sign in"}</Button></form><p className="mt-6 text-center text-sm text-slate-500">Need an account? Contact a super administrator.</p></AuthShell>;
+  return <AuthShell title="Welcome back" subtitle="Use the same secure sign-in no matter your role."><form onSubmit={submit} className="space-y-4"><Field label="Email address"><Input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></Field><Field label="Password"><Input type="password" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" /></Field>{error && <p className="text-sm font-semibold text-red-600">{error}</p>}<Button className="w-full" type="submit" disabled={loading}>{loading ? "Signing in…" : "Sign in"}</Button></form></AuthShell>;
 }
 
 function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {

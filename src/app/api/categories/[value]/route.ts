@@ -9,7 +9,7 @@ import { CATEGORY_VALUE_PATTERN, listServiceCategories } from "@/features/servic
 import { enforceRateLimit } from "@/lib/rate-limit";
 
 const descriptionSchema = z.object({
-  description: z.string().trim().min(2, "Enter a category description.").max(240, "Use a description of 240 characters or fewer."),
+  description: z.string().trim().max(240, "Use a description of 240 characters or fewer.").optional().default(""),
 });
 
 export async function PATCH(request: Request, { params }: { params: { value: string } }) {

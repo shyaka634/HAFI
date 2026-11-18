@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronUp, Globe2, Menu, MessageCircle, Moon, Sun, X } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
 import { BrandMark } from "@/components/brand-mark";
@@ -23,6 +23,8 @@ export function SiteHeader() {
   const { locale, setLocale, t } = useLocale();
   const { clearSession, user } = useAppSession();
   const [open, setOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreMenuRef = useRef<HTMLDivElement>(null);
   const [navigationVisible, setNavigationVisible] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [topBanners, setTopBanners] = useState<Record<TopPlacement, HeaderDiscovery[]>>({ TOP: [], TOP_SECONDARY: [] });
@@ -70,6 +72,22 @@ export function SiteHeader() {
     setNavigationVisible(window.localStorage.getItem("rwanda-service-navigation") !== "hidden");
   }, []);
 
+  useEffect(() => {
+    if (!moreOpen) return;
+    const closeOnOutsidePress = (event: MouseEvent) => {
+      if (!moreMenuRef.current?.contains(event.target as Node)) setMoreOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMoreOpen(false);
+    };
+    document.addEventListener("mousedown", closeOnOutsidePress);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeOnOutsidePress);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [moreOpen]);
+
   const links = [
     { href: "/", label: t("home") },
     ...(user ? [{ href: "/dashboard", label: t("dashboard") }] : []),
@@ -82,6 +100,8 @@ export function SiteHeader() {
       { href: "/admin/activity", label: t("history") },
     ] : []),
   ];
+  const primaryLinks = links.length > 3 ? links.slice(0, 2) : links;
+  const overflowLinks = links.slice(primaryLinks.length);
 
   function applyTheme(nextTheme: "light" | "dark") {
     setTheme(nextTheme);
@@ -99,7 +119,7 @@ export function SiteHeader() {
     setNavigationVisible((visible) => {
       const next = !visible;
       window.localStorage.setItem("rwanda-service-navigation", next ? "visible" : "hidden");
-      if (!next) setOpen(false);
+      if (!next) { setOpen(false); setMoreOpen(false); }
       return next;
     });
   }
@@ -115,12 +135,16 @@ export function SiteHeader() {
     <>
       <header className="hafi-home-header">
         <div className="hafi-home-header-inner">
-          <Link className="hafi-home-brand" href="/" onClick={() => { resetHomeSearch(); setOpen(false); }}>
+          <Link className="hafi-home-brand" href="/" onClick={() => { resetHomeSearch(); setOpen(false); setMoreOpen(false); }}>
             <BrandMark className="h-8 w-8 shrink-0" />
             <span><strong>Hafi</strong><small>{t("brandTagline")}</small></span>
           </Link>
           {navigationVisible && <nav aria-label={t("toggleNavigation")} className="hafi-home-nav">
-            {links.map((link) => <Link href={link.href} key={link.href} onClick={link.href === "/" ? resetHomeSearch : undefined}>{link.label}</Link>)}
+            {primaryLinks.map((link) => <Link href={link.href} key={link.href} onClick={() => { if (link.href === "/") resetHomeSearch(); setMoreOpen(false); }}>{link.label}</Link>)}
+            {overflowLinks.length ? <div className="hafi-home-overflow" ref={moreMenuRef}>
+              <button aria-expanded={moreOpen} aria-label="More navigation" className="hafi-home-overflow-toggle" onClick={() => setMoreOpen((isOpen) => !isOpen)} title="More navigation" type="button">{moreOpen ? <X size={18} /> : <Menu size={18} />}</button>
+              {moreOpen ? <div className="hafi-home-overflow-menu">{overflowLinks.map((link) => <Link href={link.href} key={link.href} onClick={() => { if (link.href === "/") resetHomeSearch(); setMoreOpen(false); }}>{link.label}</Link>)}</div> : null}
+            </div> : null}
           </nav>}
           <div className="hafi-home-header-actions">
             <button aria-label={navigationLabel} aria-pressed={navigationVisible} className="hafi-header-icon" onClick={toggleNavigationVisibility} title={navigationLabel} type="button">{navigationVisible ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</button>
@@ -149,7 +173,7 @@ export function SiteHeader() {
     <header className="hafi-interior-header sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <div className="mx-auto grid max-w-7xl gap-3 px-4 py-3 sm:px-6 sm:py-4 lg:grid-cols-[auto_auto_minmax(0,1fr)] lg:items-center lg:gap-4 lg:px-8">
         <div className="flex min-w-0 items-center justify-between gap-3 lg:contents">
-          <Link className="hafi-interior-brand flex min-w-0 items-center gap-3" href="/" onClick={() => { resetHomeSearch(); setOpen(false); }}>
+          <Link className="hafi-interior-brand flex min-w-0 items-center gap-3" href="/" onClick={() => { resetHomeSearch(); setOpen(false); setMoreOpen(false); }}>
             <span className="hafi-interior-brand-mark grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white shadow-lg shadow-forest-600/20">
               <BrandMark className="h-8 w-8" />
             </span>
@@ -171,8 +195,12 @@ export function SiteHeader() {
 
       {navigationVisible ? <div className="hafi-interior-nav-bar border-t border-slate-200/80 bg-white/75">
         <div className="mx-auto flex min-h-[62px] max-w-7xl items-center gap-3 px-4 py-2 sm:px-6 lg:px-8">
-          <nav className="hafi-interior-links hidden min-w-0 items-center gap-1 lg:flex">
-            {links.map((link) => <Link className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-ink" href={link.href} key={link.href} onClick={link.href === "/" ? resetHomeSearch : undefined}>{link.label}</Link>)}
+          <nav aria-label={t("toggleNavigation")} className="hafi-interior-links hidden min-w-0 items-center gap-1 lg:flex">
+            {primaryLinks.map((link) => <Link className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-ink" href={link.href} key={link.href} onClick={() => { if (link.href === "/") resetHomeSearch(); setMoreOpen(false); }}>{link.label}</Link>)}
+            {overflowLinks.length ? <div className="hafi-interior-overflow" ref={moreMenuRef}>
+              <button aria-expanded={moreOpen} aria-label="More navigation" className="hafi-interior-overflow-toggle" onClick={() => setMoreOpen((isOpen) => !isOpen)} title="More navigation" type="button">{moreOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}</button>
+              {moreOpen ? <div className="hafi-interior-overflow-menu">{overflowLinks.map((link) => <Link href={link.href} key={link.href} onClick={() => { if (link.href === "/") resetHomeSearch(); setMoreOpen(false); }}>{link.label}</Link>)}</div> : null}
+            </div> : null}
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <button aria-label={themeLabel} className="hafi-interior-control grid h-10 w-10 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-forest-200 hover:bg-forest-50 hover:text-forest-700" onClick={() => applyTheme(theme === "dark" ? "light" : "dark")} title={themeLabel} type="button">

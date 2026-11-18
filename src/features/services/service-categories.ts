@@ -46,8 +46,11 @@ export async function listServiceCategoryDetails(): Promise<ServiceCategoryDetai
     .from(serviceCategoryDescriptions);
   const descriptionsByCategory = new Map(descriptions.map((item) => [item.category, item.description]));
 
-  return orderedCategories(values).map((value) => ({
-    value,
-    description: descriptionsByCategory.get(value) || categoryDescription(value, "en"),
-  }));
+  return orderedCategories(values).map((value) => {
+    const storedDescription = descriptionsByCategory.get(value);
+    return {
+      value,
+      description: storedDescription ?? categoryDescription(value, "en"),
+    };
+  });
 }

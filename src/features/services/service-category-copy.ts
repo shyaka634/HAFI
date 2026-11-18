@@ -29,5 +29,6 @@ export function categoryLabel(category: ServiceCategory, locale: Locale) {
 
 export function categoryDescription(category: ServiceCategory, locale: Locale, customDescription?: string) {
   const builtInDescription = serviceCategoryCopy[category as BuiltInServiceCategory]?.[locale].description;
-  return customDescription?.trim() || builtInDescription || (locale === "rw" ? "Serivisi z'ingenzi zo mu gace" : "Trusted local services");
+  if (customDescription !== undefined) return customDescription.trim();
+  return builtInDescription || (locale === "rw" ? "Serivisi z'ingenzi zo mu gace" : "Trusted local services");
 }
