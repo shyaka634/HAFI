@@ -26,8 +26,8 @@ export default function SignInPage() {
   return <AuthShell title="Welcome back" subtitle="Use the same secure sign-in no matter your role."><form onSubmit={submit} className="space-y-4"><Field label="Email address"><Input type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" /></Field><Field label="Password"><Input type="password" required value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" /></Field>{error && <p className="text-sm font-semibold text-red-600">{error}</p>}<Button className="w-full" type="submit" disabled={loading}>{loading ? "Signing in…" : "Sign in"}</Button></form></AuthShell>;
 }
 
-function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
-  return <div className="grid min-h-screen place-items-center bg-gradient-to-br from-forest-50 via-white to-lake-50 px-4 py-12"><Card className="w-full max-w-md p-7 sm:p-9"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-white shadow-lg shadow-forest-600/20"><BrandMark className="h-8 w-8" /></span><p className="mt-4 text-sm font-extrabold uppercase tracking-widest text-forest-700">Hafi</p><h1 className="mt-2 text-3xl font-extrabold text-ink">{title}</h1><p className="mt-2 text-sm leading-6 text-slate-500">{subtitle}</p><div className="mt-7">{children}</div></Card></div>;
+function AuthShell({ children }: { title?: string; subtitle?: string; children: React.ReactNode }) {
+  return <div className="grid min-h-screen place-items-center bg-gradient-to-br from-forest-50 via-white to-lake-50 px-4 py-12"><Card className="w-full max-w-md p-7 sm:p-9"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-white shadow-lg shadow-forest-600/20"><BrandMark className="h-8 w-8" /></span><p className="mt-4 text-sm font-extrabold uppercase tracking-widest text-forest-700">Hafi</p><div className="mt-6">{children}</div></Card></div>;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

@@ -136,7 +136,7 @@ export function SiteHeader() {
       <header className="hafi-home-header">
         <div className="hafi-home-header-inner">
           <Link className="hafi-home-brand" href="/" onClick={() => { resetHomeSearch(); setOpen(false); setMoreOpen(false); }}>
-            <BrandMark className="h-8 w-8 shrink-0" />
+            <BrandMark className="h-9 w-9 shrink-0" />
             <span><strong>Hafi</strong><small>{t("brandTagline")}</small></span>
           </Link>
           {navigationVisible && <nav aria-label={t("toggleNavigation")} className="hafi-home-nav">
