@@ -33,7 +33,7 @@ html.dark .hafi-dashboard {
 .hafi-dashboard-heading p:first-child { margin: 0 0 6px; color: var(--dash-green); font-size: 13px; font-weight: 700; }
 .hafi-dashboard-heading strong { color: var(--dash-text); font-weight: 600; }
 .hafi-dashboard-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 24px; }
-.hafi-dashboard-stat { min-width: 0; padding: 20px; border: 1px solid var(--dash-border); border-radius: 6px; background: var(--dash-surface); color: var(--dash-text); }
+.hafi-dashboard-stat { min-width: 0; padding: 20px; border: 2px solid var(--dash-border); border-radius: 6px; background: var(--dash-surface); color: var(--dash-text); }
 .hafi-dashboard-stat-link { display: block; text-decoration: none; }
 .hafi-dashboard-stat-link:hover, .hafi-dashboard-shortcut:hover { border-color: var(--dash-green); }
 .hafi-dashboard-stat h2 { color: var(--dash-muted); font-size: 14px; font-weight: 600; }
@@ -43,17 +43,17 @@ html.dark .hafi-dashboard {
 .hafi-dashboard-section { margin-top: 30px; }
 .hafi-dashboard-section > h2 { padding-bottom: 10px; border-bottom: 1px solid var(--dash-border); font-size: 19px; font-weight: 700; }
 .hafi-dashboard-shortcuts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 12px; }
-.hafi-dashboard-shortcut { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 18px; border: 1px solid var(--dash-border); border-radius: 6px; background: var(--dash-surface); color: var(--dash-text); }
+.hafi-dashboard-shortcut { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 12px; padding: 18px; border: 2px solid var(--dash-border); border-radius: 6px; background: var(--dash-surface); color: var(--dash-text); }
 .hafi-dashboard-shortcut strong, .hafi-dashboard-shortcut small { display: block; }
 .hafi-dashboard-shortcut strong { font-size: 15px; font-weight: 700; }
 .hafi-dashboard-shortcut small { margin-top: 5px; color: var(--dash-muted); font-size: 13px; line-height: 1.45; }
 .hafi-dashboard-shortcut svg { flex: none; color: var(--dash-muted); }
-.hafi-dashboard-action { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 24px; padding: 20px; border: 1px solid var(--dash-border); border-radius: 6px; background: var(--dash-surface); }
+.hafi-dashboard-action { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 24px; padding: 20px; border: 2px solid var(--dash-border); border-radius: 6px; background: var(--dash-surface); }
 .hafi-dashboard-action h2 { font-size: 17px; font-weight: 700; }
 .hafi-dashboard-action p { margin-top: 6px; color: var(--dash-muted); font-size: 14px; line-height: 1.5; }
 .hafi-dashboard-button { display: inline-flex; min-height: 40px; flex: none; align-items: center; justify-content: center; padding: 0 15px; border-radius: 5px; background: var(--dash-button); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; }
 .hafi-dashboard-button:hover { filter: brightness(.92); }
-.hafi-dashboard-recent { overflow: hidden; margin-top: 12px; border: 1px solid var(--dash-border); border-radius: 6px; background: var(--dash-surface); }
+.hafi-dashboard-recent { overflow: hidden; margin-top: 12px; border: 2px solid var(--dash-border); border-radius: 6px; background: var(--dash-surface); }
 .hafi-dashboard-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 15px 18px; }
 .hafi-dashboard-row + .hafi-dashboard-row { border-top: 1px solid var(--dash-border); }
 .hafi-dashboard-row p { overflow-wrap: anywhere; font-size: 15px; font-weight: 600; }

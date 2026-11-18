@@ -40,7 +40,7 @@ html.dark .hafi-admin .text-slate-600, html.dark .hafi-admin .text-slate-700 { c
 .hafi-admin .text-red-700, html.dark .hafi-admin .text-red-700 { color: var(--admin-danger) !important; }
 .hafi-admin .rounded-2xl.border.bg-white,
 html:not(.dark) .hafi-admin .rounded-2xl.border.bg-white,
-html.dark .hafi-admin .rounded-2xl.border.bg-white { border-color: var(--admin-border) !important; border-radius: 6px; background: var(--admin-surface) !important; box-shadow: none; }
+html.dark .hafi-admin .rounded-2xl.border.bg-white { border-color: var(--admin-border) !important; border-width: 2px; border-radius: 6px; background: var(--admin-surface) !important; box-shadow: none; }
 .hafi-admin .border, .hafi-admin .border-t, .hafi-admin .border-b,
 html.dark .hafi-admin .border, html.dark .hafi-admin .border-t,
 html.dark .hafi-admin .border-b { border-color: var(--admin-border) !important; }
@@ -50,7 +50,7 @@ html.dark .hafi-admin .bg-slate-50, html.dark .hafi-admin .bg-slate-100,
 html.dark .hafi-admin .bg-forest-50, html.dark .hafi-admin .bg-lake-50 { background: var(--admin-subtle) !important; }
 .hafi-admin .text-lake-600, html.dark .hafi-admin .text-lake-600 { color: var(--admin-green) !important; }
 .hafi-admin input:not([type="checkbox"]):not([type="radio"]), .hafi-admin select, .hafi-admin textarea,
-html.dark .hafi-admin input:not([type="checkbox"]):not([type="radio"]), html.dark .hafi-admin select, html.dark .hafi-admin textarea { border-color: var(--admin-border) !important; border-radius: 5px; background: var(--admin-surface) !important; color: var(--admin-text) !important; }
+html.dark .hafi-admin input:not([type="checkbox"]):not([type="radio"]), html.dark .hafi-admin select, html.dark .hafi-admin textarea { border-color: var(--admin-border) !important; border-width: 2px; border-radius: 5px; background: var(--admin-surface) !important; color: var(--admin-text) !important; }
 .hafi-admin input::placeholder, .hafi-admin textarea::placeholder { color: var(--admin-muted); opacity: .8; }
 .hafi-admin button, .hafi-admin a.rounded-xl { border-radius: 5px; }
 .hafi-admin button.bg-forest-600 { background: var(--admin-action); }

@@ -30,7 +30,7 @@ html.dark .hafi-submit {
 .hafi-submit-heading p { color: var(--submit-muted) !important; font-size: 15px; line-height: 1.6; }
 .hafi-submit .rounded-2xl.border.bg-white,
 html:not(.dark) .hafi-submit .rounded-2xl.border.bg-white,
-html.dark .hafi-submit .rounded-2xl.border.bg-white { border-color: var(--submit-border) !important; border-radius: 6px; background: var(--submit-surface) !important; box-shadow: none; }
+html.dark .hafi-submit .rounded-2xl.border.bg-white { border-color: var(--submit-border) !important; border-width: 2px; border-radius: 6px; background: var(--submit-surface) !important; box-shadow: none; }
 .hafi-submit label > span:first-child { color: var(--submit-text) !important; font-weight: 600; }
 .hafi-submit .text-slate-500, .hafi-submit .text-slate-600,
 html.dark .hafi-submit .text-slate-500, html.dark .hafi-submit .text-slate-600 { color: var(--submit-muted) !important; }
@@ -39,7 +39,7 @@ html.dark .hafi-submit .text-slate-500, html.dark .hafi-submit .text-slate-600 {
 .hafi-submit .text-amber-700, html.dark .hafi-submit .text-amber-700 { color: var(--submit-warning) !important; }
 .hafi-submit .text-red-600, html.dark .hafi-submit .text-red-600 { color: var(--submit-error) !important; }
 .hafi-submit input, .hafi-submit select, .hafi-submit textarea,
-html.dark .hafi-submit input, html.dark .hafi-submit select, html.dark .hafi-submit textarea { border-color: var(--submit-border) !important; border-radius: 5px; background: var(--submit-surface) !important; color: var(--submit-text) !important; }
+html.dark .hafi-submit input, html.dark .hafi-submit select, html.dark .hafi-submit textarea { border-color: var(--submit-border) !important; border-width: 2px; border-radius: 5px; background: var(--submit-surface) !important; color: var(--submit-text) !important; }
 .hafi-submit input::placeholder, .hafi-submit textarea::placeholder { color: var(--submit-muted); opacity: .8; }
 .hafi-submit input:disabled { opacity: .75; }
 .hafi-submit input[type="file"]::file-selector-button { border-radius: 5px; background: var(--submit-subtle); color: var(--submit-green); }
