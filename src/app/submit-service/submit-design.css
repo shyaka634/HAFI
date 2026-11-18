@@ -1,33 +1,33 @@
 .hafi-submit {
-  --submit-canvas: #f1f7f1;
+  --submit-canvas: #ffffff;
   --submit-surface: #fff;
-  --submit-subtle: #eaf2eb;
-  --submit-border: #d9e2d9;
-  --submit-text: #1c2520;
-  --submit-muted: #586b60;
-  --submit-green: #17422c;
-  --submit-action: #17422c;
-  --submit-warning: #825510;
-  --submit-error: #a22f27;
+  --submit-subtle: #f1f5f9;
+  --submit-border: #cbd5e1;
+  --submit-text: #0f172a;
+  --submit-muted: #475569;
+  --submit-green: #1d4ed8;
+  --submit-action: #1d4ed8;
+  --submit-warning: #a16207;
+  --submit-error: #b91c1c;
   min-height: 65vh;
   background: var(--submit-canvas);
   color: var(--submit-text);
 }
 html.dark .hafi-submit {
-  --submit-canvas: #0e1c19;
-  --submit-surface: #172923;
-  --submit-subtle: #20362e;
-  --submit-border: #344a3f;
-  --submit-text: #eef5ef;
-  --submit-muted: #b2c3b7;
-  --submit-green: #9fe1ba;
-  --submit-action: #317b53;
-  --submit-warning: #f1cc7e;
-  --submit-error: #ffb4a9;
+  --submit-canvas: #0b1120;
+  --submit-surface: #111827;
+  --submit-subtle: #1e293b;
+  --submit-border: #334155;
+  --submit-text: #f8fafc;
+  --submit-muted: #cbd5e1;
+  --submit-green: #60a5fa;
+  --submit-action: #2563eb;
+  --submit-warning: #fbbf24;
+  --submit-error: #fca5a5;
 }
 .hafi-submit-heading { padding-bottom: 20px; border-bottom: 1px solid var(--submit-border); }
-.hafi-submit-heading h1 { margin-top: 0; color: var(--submit-text) !important; font-size: clamp(24px, 3vw, 30px); font-weight: 700; letter-spacing: -.025em; line-height: 1.25; }
-.hafi-submit-heading p { color: var(--submit-muted) !important; font-size: 14px; line-height: 1.6; }
+.hafi-submit-heading h1 { margin-top: 0; color: var(--submit-text) !important; font-size: clamp(26px, 3vw, 32px); font-weight: 700; letter-spacing: -.025em; line-height: 1.25; }
+.hafi-submit-heading p { color: var(--submit-muted) !important; font-size: 15px; line-height: 1.6; }
 .hafi-submit .rounded-2xl.border.bg-white,
 html:not(.dark) .hafi-submit .rounded-2xl.border.bg-white,
 html.dark .hafi-submit .rounded-2xl.border.bg-white { border-color: var(--submit-border) !important; border-radius: 6px; background: var(--submit-surface) !important; box-shadow: none; }

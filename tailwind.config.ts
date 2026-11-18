@@ -7,15 +7,24 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#102A43",
-        muted: "#627D98",
+        ink: "#0F172A",
+        muted: "#475569",
         cream: "#F8FAFC",
-        forest: { 50: "#ECFDF3", 100: "#D1FADF", 500: "#12B76A", 600: "#039855", 700: "#027A48", 900: "#054F31" },
-        lake: { 50: "#EFF8FF", 100: "#D1E9FF", 500: "#2E90FA", 600: "#1570EF" },
+        forest: { 50: "#EFF6FF", 100: "#DBEAFE", 500: "#3B82F6", 600: "#2563EB", 700: "#1D4ED8", 900: "#172554" },
+        lake: { 50: "#EFF6FF", 100: "#DBEAFE", 500: "#3B82F6", 600: "#2563EB" },
+      },
+      fontSize: {
+        xs: ["0.8125rem", { lineHeight: "1.125rem" }],
+        sm: ["0.9375rem", { lineHeight: "1.375rem" }],
+        base: ["1.0625rem", { lineHeight: "1.625rem" }],
+        lg: ["1.1875rem", { lineHeight: "1.75rem" }],
+        xl: ["1.3125rem", { lineHeight: "1.875rem" }],
+        "2xl": ["1.625rem", { lineHeight: "2.125rem" }],
+        "3xl": ["2rem", { lineHeight: "2.5rem" }],
       },
       boxShadow: {
-        soft: "0 18px 45px -25px rgba(16, 42, 67, 0.35)",
-        lift: "0 24px 48px -24px rgba(16, 42, 67, 0.28)",
+        soft: "0 18px 45px -25px rgba(15, 23, 42, 0.24)",
+        lift: "0 24px 48px -24px rgba(15, 23, 42, 0.22)",
       },
     },
   },

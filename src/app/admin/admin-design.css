@@ -1,33 +1,33 @@
 .hafi-admin {
-  --admin-canvas: #f1f7f1;
+  --admin-canvas: #ffffff;
   --admin-surface: #fff;
-  --admin-subtle: #eaf2eb;
-  --admin-border: #d9e2d9;
-  --admin-text: #1c2520;
-  --admin-muted: #586b60;
-  --admin-green: #17422c;
-  --admin-action: #17422c;
-  --admin-warning: #825510;
-  --admin-danger: #a22f27;
+  --admin-subtle: #f1f5f9;
+  --admin-border: #cbd5e1;
+  --admin-text: #0f172a;
+  --admin-muted: #475569;
+  --admin-green: #1d4ed8;
+  --admin-action: #1d4ed8;
+  --admin-warning: #a16207;
+  --admin-danger: #b91c1c;
   min-height: 65vh;
   background: var(--admin-canvas);
   color: var(--admin-text);
 }
 html.dark .hafi-admin {
-  --admin-canvas: #0e1c19;
-  --admin-surface: #172923;
-  --admin-subtle: #20362e;
-  --admin-border: #344a3f;
-  --admin-text: #eef5ef;
-  --admin-muted: #b2c3b7;
-  --admin-green: #9fe1ba;
-  --admin-action: #317b53;
-  --admin-warning: #f1cc7e;
-  --admin-danger: #ffb4a9;
+  --admin-canvas: #0b1120;
+  --admin-surface: #111827;
+  --admin-subtle: #1e293b;
+  --admin-border: #334155;
+  --admin-text: #f8fafc;
+  --admin-muted: #cbd5e1;
+  --admin-green: #60a5fa;
+  --admin-action: #2563eb;
+  --admin-warning: #fbbf24;
+  --admin-danger: #fca5a5;
 }
 
 /* Keep the existing forms and actions, but use the same surfaces as the dashboard. */
-.hafi-admin h1 { margin-top: 0; color: var(--admin-text) !important; font-size: clamp(24px, 3vw, 30px); font-weight: 700; letter-spacing: -.025em; line-height: 1.25; }
+.hafi-admin h1 { margin-top: 0; color: var(--admin-text) !important; font-size: clamp(26px, 3vw, 32px); font-weight: 700; letter-spacing: -.025em; line-height: 1.25; }
 .hafi-admin h2, .hafi-admin h3 { color: var(--admin-text) !important; font-weight: 700; }
 .hafi-admin .font-extrabold { font-weight: 700; }
 .hafi-admin .text-slate-400, .hafi-admin .text-slate-500,
