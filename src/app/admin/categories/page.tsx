@@ -7,10 +7,9 @@ import { AccessLoading } from "@/components/access-loading";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { categoryLabel } from "@/features/services/service-category-copy";
 import { useAppSession } from "@/providers/session-provider";
 
-type Category = { value: string; description: string };
+type Category = { value: string; name: string; description: string };
 type CategoryResponse = { categories: Category[] };
 
 export default function AdminCategoriesPage() {
@@ -19,6 +18,7 @@ export default function AdminCategoriesPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [notice, setNotice] = useState("");
   const [saving, setSaving] = useState(false);
@@ -61,27 +61,38 @@ export default function AdminCategoriesPage() {
     }
   }
 
-  async function saveDescription(value: string) {
+  function beginEdit(category: Category) {
+    setEditing(category.value);
+    setEditName(category.name);
+    setEditDescription(category.description);
+  }
+
+  function cancelEdit() {
+    setEditing(null);
+    setEditName("");
+    setEditDescription("");
+  }
+
+  async function saveCategory(value: string) {
     setSaving(true);
     setNotice("");
     try {
       const response = await fetch(`/api/categories/${encodeURIComponent(value)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: editDescription }),
+        body: JSON.stringify({ name: editName, description: editDescription }),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) {
-        setNotice(data?.error ?? "The category description could not be saved.");
+        setNotice(data?.error ?? "The category could not be saved.");
         return;
       }
-      setEditing(null);
-      setEditDescription("");
-      setNotice("Category description updated.");
+      cancelEdit();
+      setNotice("Category name and description updated.");
       window.dispatchEvent(new Event("hafi:categories-updated"));
       await load();
     } catch {
-      setNotice("The category description could not be saved. Check your connection and try again.");
+      setNotice("The category could not be saved. Check your connection and try again.");
     } finally {
       setSaving(false);
     }
@@ -92,10 +103,10 @@ export default function AdminCategoriesPage() {
 
   return <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
     <Link className="inline-flex items-center gap-2 text-sm font-bold text-forest-700 hover:text-forest-900" href="/dashboard/admin"><ArrowLeft className="h-4 w-4" />Back to report</Link>
-    <div className="mt-6"><h1 className="text-3xl font-extrabold text-ink">Manage service categories</h1><p className="mt-2 max-w-2xl text-slate-500">Add a category and the description people will see while browsing the service directory.</p></div>
+    <div className="mt-6"><h1 className="text-3xl font-extrabold text-ink">Manage service categories</h1><p className="mt-2 max-w-2xl text-slate-500">Add categories and manage the names and descriptions people see while browsing the service directory.</p></div>
 
     <Card className="mt-8 p-5 sm:p-6"><h2 className="font-extrabold text-ink">Add a category</h2><p className="mt-1 text-sm text-slate-500">For example: Mobile money — Send and receive money securely.</p><form className="mt-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto]" onSubmit={createCategory}><Input className="h-12 text-base" maxLength={50} onChange={(event) => setName(event.target.value)} placeholder="Category name" required value={name} /><Input className="h-12 text-base" maxLength={240} onChange={(event) => setDescription(event.target.value)} placeholder="Category description (optional)" value={description} /><Button className="min-w-[170px] shrink-0 whitespace-nowrap" disabled={saving} size="lg" type="submit"><Plus className="h-5 w-5" />{saving ? "Adding..." : "Add category"}</Button></form>{notice ? <p className="mt-4 text-sm font-bold text-forest-700" role="status">{notice}</p> : null}</Card>
 
-    <section className="mt-8"><div><h2 className="text-xl font-extrabold text-ink">Available categories</h2><p className="mt-1 text-sm text-slate-500">{categories.length} categories in the directory. Edit a description at any time.</p></div><div className="mt-4 grid gap-3 sm:grid-cols-2">{categories.map((category) => <Card className="p-5" key={category.value}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="font-extrabold text-ink">{categoryLabel(category.value, "en")}</h3></div>{editing === category.value ? null : <Button onClick={() => { setEditing(category.value); setEditDescription(category.description); }} size="sm" type="button" variant="secondary"><Pencil className="h-4 w-4" />Edit</Button>}</div>{editing === category.value ? <form className="mt-4" onSubmit={(event) => { event.preventDefault(); void saveDescription(category.value); }}><label className="block text-sm font-bold text-slate-700">Category description <span className="font-normal text-slate-500">(optional)</span><textarea className="mt-1.5 min-h-24 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm text-ink outline-none focus:border-forest-500 focus:ring-4 focus:ring-forest-50" maxLength={240} onChange={(event) => setEditDescription(event.target.value)} value={editDescription} /></label><div className="mt-3 flex gap-2"><Button disabled={saving} size="sm" type="submit">{saving ? "Saving..." : "Save description"}</Button><Button disabled={saving} onClick={() => { setEditing(null); setEditDescription(""); }} size="sm" type="button" variant="ghost"><X className="h-4 w-4" />Cancel</Button></div></form> : <p className="mt-4 text-sm leading-6 text-slate-600">{category.description || "No description added yet."}</p>}</Card>)}</div></section>
+    <section className="mt-8"><div><h2 className="text-xl font-extrabold text-ink">Available categories</h2><p className="mt-1 text-sm text-slate-500">{categories.length} categories in the directory. Edit a name or description at any time.</p></div><div className="mt-4 grid gap-3 sm:grid-cols-2">{categories.map((category) => <Card className="p-5" key={category.value}><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="font-extrabold text-ink">{category.name}</h3></div>{editing === category.value ? null : <Button onClick={() => beginEdit(category)} size="sm" type="button" variant="secondary"><Pencil className="h-4 w-4" />Edit</Button>}</div>{editing === category.value ? <form className="mt-4 space-y-4" onSubmit={(event) => { event.preventDefault(); void saveCategory(category.value); }}><label className="block text-sm font-bold text-slate-700">Category name<Input className="mt-1.5 h-11 text-base" maxLength={50} onChange={(event) => setEditName(event.target.value)} required value={editName} /></label><label className="block text-sm font-bold text-slate-700">Category description <span className="font-normal text-slate-500">(optional)</span><textarea className="mt-1.5 min-h-24 w-full rounded-xl border-2 border-slate-200 bg-white p-3 text-sm text-ink outline-none focus:border-forest-500 focus:ring-4 focus:ring-forest-50" maxLength={240} onChange={(event) => setEditDescription(event.target.value)} value={editDescription} /></label><p className="text-xs leading-5 text-slate-500">Changing the name updates the label people see. Existing services remain in this category.</p><div className="flex gap-2"><Button disabled={saving} size="sm" type="submit">{saving ? "Saving..." : "Save changes"}</Button><Button disabled={saving} onClick={cancelEdit} size="sm" type="button" variant="ghost"><X className="h-4 w-4" />Cancel</Button></div></form> : <p className="mt-4 text-sm leading-6 text-slate-600">{category.description || "No description added yet."}</p>}</Card>)}</div></section>
   </main>;
 }

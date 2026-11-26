@@ -14,6 +14,9 @@ export const serviceCategory = pgEnum("ServiceCategory", [
 ]);
 export const serviceCategoryDescriptions = pgTable("ServiceCategoryDescription", {
   category: text("category").primaryKey(),
+  // The enum value stays stable for existing services; this is the editable
+  // name shown to people throughout the directory.
+  name: text("name"),
   description: text("description").notNull(),
   createdAt: timestamp("createdAt", { withTimezone: false }).notNull().defaultNow(),
   updatedAt: timestamp("updatedAt", { withTimezone: false }).notNull().defaultNow(),

@@ -37,6 +37,8 @@ type ExistingService = {
   address: string | null;
 };
 
+type CategoryOption = { value: string; name: string };
+
 export default function SubmitServicePage() {
   const { user, isLoading } = useAppSession();
   const [form, setForm] = useState(initialForm);
@@ -47,7 +49,7 @@ export default function SubmitServicePage() {
   const [photoInputKey, setPhotoInputKey] = useState(0);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreviewUrl, setPhotoPreviewUrl] = useState("");
-  const [categories, setCategories] = useState<string[]>([...SERVICE_CATEGORIES]);
+  const [categories, setCategories] = useState<CategoryOption[]>(() => SERVICE_CATEGORIES.map((value) => ({ value, name: categoryLabel(value, "en") })));
   const [serviceMatches, setServiceMatches] = useState<ExistingService[]>([]);
   const [searchingServices, setSearchingServices] = useState(false);
 
@@ -56,9 +58,9 @@ export default function SubmitServicePage() {
   }, [user]);
 
   useEffect(() => {
-    fetch("/api/categories")
+    fetch("/api/categories?details=true")
       .then((response) => response.ok ? response.json() : null)
-      .then((data: { categories?: string[] } | null) => {
+      .then((data: { categories?: CategoryOption[] } | null) => {
         if (data?.categories?.length) setCategories(data.categories);
       })
       .catch(() => {});
@@ -252,7 +254,7 @@ export default function SubmitServicePage() {
           </Field>
           <Field label="Service category">
             <select value={form.category} onChange={(event) => changeCategory(event.target.value as ServiceCategory)} className="h-11 w-full rounded-xl border bg-white px-3 text-sm">
-              {categories.map((category) => <option key={category} value={category}>{categoryLabel(category, "en")}</option>)}
+              {categories.map((category) => <option key={category.value} value={category.value}>{category.name || categoryLabel(category.value, "en")}</option>)}
             </select>
           </Field>
           <div className="sm:col-span-2">

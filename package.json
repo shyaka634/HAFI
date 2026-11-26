@@ -15,7 +15,8 @@
     "db:indexes": "node --env-file=.env.local scripts/apply-performance-indexes.mjs",
     "db:media-metadata": "node --env-file=.env.local scripts/add-discovery-media-metadata.mjs",
     "db:service-about": "node --env-file=.env.local scripts/add-service-about.mjs",
-    "db:category-descriptions": "node --env-file=.env.local scripts/add-service-category-descriptions.mjs"
+    "db:category-descriptions": "node --env-file=.env.local scripts/add-service-category-descriptions.mjs",
+    "db:category-names": "node --env-file=.env.local scripts/add-service-category-names.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.1",

@@ -136,7 +136,7 @@ export function SiteHeader() {
       <header className="hafi-home-header">
         <div className="hafi-home-header-inner">
           <Link className="hafi-home-brand" href="/" onClick={() => { resetHomeSearch(); setOpen(false); setMoreOpen(false); }}>
-            <BrandMark className="h-9 w-9 shrink-0" />
+            <BrandMark className="h-[54px] w-[54px] shrink-0" />
             <span><strong>Hafi</strong><small>{t("brandTagline")}</small></span>
           </Link>
           {navigationVisible && <nav aria-label={t("toggleNavigation")} className="hafi-home-nav">
@@ -174,12 +174,12 @@ export function SiteHeader() {
       <div className="mx-auto grid max-w-7xl gap-3 px-4 py-3 sm:px-6 sm:py-4 lg:grid-cols-[auto_auto_minmax(0,1fr)] lg:items-center lg:gap-4 lg:px-8">
         <div className="flex min-w-0 items-center justify-between gap-3 lg:contents">
           <Link className="hafi-interior-brand flex min-w-0 items-center gap-3" href="/" onClick={() => { resetHomeSearch(); setOpen(false); setMoreOpen(false); }}>
-            <span className="hafi-interior-brand-mark grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white shadow-lg shadow-forest-600/20">
-              <BrandMark className="h-8 w-8" />
+            <span className="hafi-interior-brand-mark grid h-[72px] w-[72px] shrink-0 place-items-center rounded-2xl bg-white shadow-lg shadow-forest-600/20">
+              <BrandMark className="h-12 w-12" />
             </span>
             <span className="min-w-0">
-              <span className="block text-lg font-extrabold tracking-tight text-ink">Hafi</span>
-              <span className="block -mt-0.5 truncate text-sm font-medium text-forest-700">{t("brandTagline")}</span>
+              <span className="block text-[27px] font-extrabold tracking-tight text-ink">Hafi</span>
+              <span className="block -mt-0.5 text-[21px] font-medium leading-tight text-forest-700">{t("brandTagline")}</span>
             </span>
           </Link>
           <button aria-label={navigationLabel} aria-pressed={navigationVisible} className="hafi-interior-control grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-forest-200 hover:bg-forest-50 hover:text-forest-700" onClick={toggleNavigationVisibility} title={navigationLabel} type="button">

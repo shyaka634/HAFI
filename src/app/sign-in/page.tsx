@@ -27,7 +27,7 @@ export default function SignInPage() {
 }
 
 function AuthShell({ children }: { title?: string; subtitle?: string; children: React.ReactNode }) {
-  return <div className="grid min-h-screen place-items-center bg-gradient-to-br from-forest-50 via-white to-lake-50 px-4 py-12"><Card className="w-full max-w-md p-7 sm:p-9"><span className="grid h-12 w-12 place-items-center rounded-2xl bg-white shadow-lg shadow-forest-600/20"><BrandMark className="h-8 w-8" /></span><p className="mt-4 text-sm font-extrabold uppercase tracking-widest text-forest-700">Hafi</p><div className="mt-6">{children}</div></Card></div>;
+  return <div className="grid min-h-screen place-items-center bg-gradient-to-br from-forest-50 via-white to-lake-50 px-4 py-12"><Card className="w-full max-w-md p-7 sm:p-9"><div className="flex items-center gap-3"><span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white shadow-lg shadow-forest-600/20"><BrandMark className="h-8 w-8" /></span><p className="text-base font-extrabold uppercase tracking-widest text-forest-700">Hafi</p></div><div className="mt-6">{children}</div></Card></div>;
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

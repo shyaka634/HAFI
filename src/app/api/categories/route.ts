@@ -6,9 +6,7 @@ import { auditLogs, serviceCategoryDescriptions } from "@/lib/db/schema";
 import { getCurrentUser } from "@/lib/auth/session";
 import { isSuperAdmin } from "@/lib/permissions";
 import { createId } from "@/lib/utils";
-import { CATEGORY_VALUE_PATTERN, categoryValueFromName, listServiceCategories, listServiceCategoryDetails } from "@/features/services/service-categories";
-import { type ServiceCategory } from "@/lib/types";
-import { categoryLabel } from "@/features/services/service-category-copy";
+import { CATEGORY_VALUE_PATTERN, categoryValueFromName, listServiceCategoryDetails } from "@/features/services/service-categories";
 import { enforceRateLimit } from "@/lib/rate-limit";
 
 const categorySchema = z.object({
@@ -47,9 +45,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const categories = await listServiceCategories();
+    const categories = await listServiceCategoryDetails();
     const hasEquivalentCategory = categories.some((existing) =>
-      existing === value || categoryValueFromName(categoryLabel(existing as ServiceCategory, "en")) === value,
+      existing.value === value || categoryValueFromName(existing.name) === value,
     );
     if (hasEquivalentCategory) return NextResponse.json({ error: "That category already exists." }, { status: 409 });
 
@@ -58,6 +56,7 @@ export async function POST(request: Request) {
     await db.execute(sql.raw(`ALTER TYPE "ServiceCategory" ADD VALUE IF NOT EXISTS '${value}'`));
     await db.insert(serviceCategoryDescriptions).values({
       category: value,
+      name: parsed.data.name,
       description: parsed.data.description,
       updatedAt: new Date(),
     });
@@ -70,7 +69,7 @@ export async function POST(request: Request) {
       details: { name: parsed.data.name, description: parsed.data.description },
     });
 
-    return NextResponse.json({ value }, { status: 201 });
+    return NextResponse.json({ value, name: parsed.data.name, description: parsed.data.description }, { status: 201 });
   } catch {
     return NextResponse.json({ error: "The category could not be created. Please try again." }, { status: 500 });
   }

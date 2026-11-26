@@ -6,7 +6,7 @@ import type { Service, ServiceRoute } from "@/features/services/types/service";
 import { useLocale } from "@/providers/locale-provider";
 import { optimizedImageUrl } from "@/lib/media-url";
 
-export function ServiceCard({ onRoute, service }: { onRoute?: (route: ServiceRoute) => void; service: Service }) {
+export function ServiceCard({ categoryName, onRoute, service }: { categoryName?: string; onRoute?: (route: ServiceRoute) => void; service: Service }) {
   const { locale } = useLocale();
   const aboutRef = useRef<HTMLParagraphElement>(null);
   const [aboutExpanded, setAboutExpanded] = useState(false);
@@ -34,7 +34,7 @@ export function ServiceCard({ onRoute, service }: { onRoute?: (route: ServiceRou
       {service.imageBase64 ? <img alt={`Photo of ${service.name}`} className="hafi-result-image" decoding="async" loading="lazy" src={optimizedImageUrl(service.imageBase64, "service-card")} /> : null}
       <div className="hafi-result-content">
         <div className="hafi-result-meta">
-          <span className="hafi-result-category">{categoryLabel(service.category, locale)}</span>
+          <span className="hafi-result-category">{categoryName || categoryLabel(service.category, locale)}</span>
           {typeof service.distanceKm === "number" && <span className="hafi-result-distance">{service.distanceKm.toFixed(1)} km</span>}
         </div>
         <h3 className="hafi-result-name">{service.name}</h3>

@@ -27,11 +27,11 @@ html.dark {
 .hafi-home-header, .hafi-home-banners, .hafi-home { color: var(--hafi-text); background: var(--hafi-canvas); }
 .hafi-home-header { position: relative; z-index: 40; border-bottom: 1px solid var(--hafi-border); background: var(--hafi-surface); }
 .hafi-home-header-inner, .hafi-home-banner-grid, .hafi-home-container { width: min(100% - 48px, 1120px); margin-inline: auto; }
-.hafi-home-header-inner { display: flex; min-height: 68px; align-items: center; gap: 30px; }
-.hafi-home-brand { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 9px; text-decoration: none; }
+.hafi-home-header-inner { display: flex; min-height: 88px; align-items: center; gap: 32px; }
+.hafi-home-brand { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 14px; text-decoration: none; }
 .hafi-home-brand strong, .hafi-home-brand small { display: block; }
-.hafi-home-brand strong { font-size: 20px; line-height: 1.1; letter-spacing: -.02em; }
-.hafi-home-brand small { margin-top: 3px; color: var(--hafi-muted); font-size: 12px; line-height: 1.2; }
+.hafi-home-brand strong { font-size: 30px; line-height: 1.1; letter-spacing: -.02em; }
+.hafi-home-brand small { margin-top: 4px; color: var(--hafi-muted); font-size: 18px; line-height: 1.2; }
 .hafi-home-nav { display: flex; min-width: 0; flex: 1 1 auto; flex-wrap: nowrap; align-items: center; gap: 3px; }
 .hafi-home-nav a, .hafi-home-mobile-nav a { padding: 8px 10px; border-radius: 5px; color: var(--hafi-muted); font-size: 14px; font-weight: 600; text-decoration: none; }
 .hafi-home-nav a:hover, .hafi-home-mobile-nav a:hover { background: var(--hafi-subtle); color: var(--hafi-text); }
@@ -156,8 +156,10 @@ html.dark .hafi-search-error { color: #fca5a5; }
 }
 @media (max-width: 639px) {
   .hafi-home-header-inner, .hafi-home-banner-grid, .hafi-home-container, .hafi-home-mobile-nav { width: calc(100% - 32px); }
-  .hafi-home-header-inner { gap: 8px; }
-  .hafi-home-brand small { display: none; }
+  .hafi-home-header-inner { flex-wrap: wrap; gap: 12px; padding-block: 12px; }
+  .hafi-home-brand { flex-basis: 100%; gap: 12px; }
+  .hafi-home-brand small { display: block; }
+  .hafi-home-nav { flex: 1 1 0; }
   .hafi-home-header-actions { gap: 4px; }
   .hafi-header-icon { width: 32px; min-height: 34px; }
   .hafi-header-signin { min-height: 34px; padding: 0 8px; }

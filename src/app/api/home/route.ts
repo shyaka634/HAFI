@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         categories: categoryDetails.map((category) => category.value),
+        categoryNames: Object.fromEntries(categoryDetails.map((category) => [category.value, category.name])),
         categoryDescriptions: Object.fromEntries(categoryDetails.map((category) => [category.value, category.description])),
         discoveries: { top, topSecondary, side: side.slice(0, 15), sideHasMore: side.length > 15 },
       },

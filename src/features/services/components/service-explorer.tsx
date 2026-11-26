@@ -44,6 +44,7 @@ export function ServiceExplorer() {
   const [hasMoreDiscoveries, setHasMoreDiscoveries] = useState(false);
   const [discoveriesLoading, setDiscoveriesLoading] = useState(true);
   const [categories, setCategories] = useState<string[]>([...SERVICE_CATEGORIES]);
+  const [categoryNames, setCategoryNames] = useState<Record<string, string>>({});
   const [categoryDescriptions, setCategoryDescriptions] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -53,6 +54,7 @@ export function ServiceExplorer() {
       setDiscoveries(data.discoveries.side);
       setHasMoreDiscoveries(data.discoveries.sideHasMore);
       if (data.categories.length) setCategories(data.categories);
+      setCategoryNames(data.categoryNames ?? {});
       setCategoryDescriptions(data.categoryDescriptions ?? {});
     };
     const loadDirectory = (fresh = false) => loadHomeData({ fresh })
@@ -117,7 +119,7 @@ export function ServiceExplorer() {
           <form className="hafi-search-form" onSubmit={(event) => { event.preventDefault(); search(); }}>
             <div className="hafi-search-input"><Search aria-hidden="true" size={18} /><input aria-label={copy.searchPlaceholder} onChange={(event) => setName(event.target.value)} placeholder={copy.searchPlaceholder} value={name} /></div>
             <button className="hafi-location-button" disabled={searching} onClick={useLocation} type="button"><Crosshair aria-hidden="true" size={17} />{copy.useLocation}</button>
-            <select aria-label={copy.allCategories} onChange={(event) => setCategory(event.target.value as ServiceCategory | "")} value={category}><option value="">{copy.allCategories}</option>{categories.map((value) => <option key={value} value={value}>{categoryLabel(value, locale)}</option>)}</select>
+            <select aria-label={copy.allCategories} onChange={(event) => setCategory(event.target.value as ServiceCategory | "")} value={category}><option value="">{copy.allCategories}</option>{categories.map((value) => <option key={value} value={value}>{categoryNames[value] || categoryLabel(value, locale)}</option>)}</select>
             <select aria-label={copy.allDistricts} onChange={(event) => setDistrict(event.target.value)} value={district}><option value="">{copy.allDistricts}</option>{RWANDA_DISTRICTS.map((item) => <option key={item}>{item}</option>)}</select>
             <button className="hafi-search-button" disabled={searching} type="submit"><Search aria-hidden="true" size={17} />{searching ? copy.searching : copy.search}</button>
           </form>
@@ -129,7 +131,7 @@ export function ServiceExplorer() {
             <div className="hafi-section-heading"><h2>{copy.categoryHeading}</h2></div>
             <div className="hafi-category-list">{categories.map((value) => {
               const description = categoryDescription(value, locale, categoryDescriptions[value]);
-              return <button className="hafi-category-row" key={value} onClick={() => { setCategory(value); search({ category: value }); }} type="button"><span><span className="hafi-category-name">{categoryLabel(value, locale)}</span>{description ? <span className="hafi-category-description">{description}</span> : null}</span><ArrowRight aria-hidden="true" className="hafi-category-arrow" size={17} /></button>;
+              return <button className="hafi-category-row" key={value} onClick={() => { setCategory(value); search({ category: value }); }} type="button"><span><span className="hafi-category-name">{categoryNames[value] || categoryLabel(value, locale)}</span>{description ? <span className="hafi-category-description">{description}</span> : null}</span><ArrowRight aria-hidden="true" className="hafi-category-arrow" size={17} /></button>;
             })}</div>
           </section>
           <DiscoveryRail copy={copy} hasMore={hasMoreDiscoveries} items={discoveries} loading={discoveriesLoading} />
@@ -137,11 +139,12 @@ export function ServiceExplorer() {
       </div>
     </section>
 
-    {searched && <SearchResultsPane copy={copy} locale={locale} location={location} nearbySearch={nearbySearch} onStartOver={() => setSearched(false)} onUserLocationChange={setLocation} results={results} />}
+    {searched && <SearchResultsPane categoryNames={categoryNames} copy={copy} locale={locale} location={location} nearbySearch={nearbySearch} onStartOver={() => setSearched(false)} onUserLocationChange={setLocation} results={results} />}
   </>;
 }
 
-function SearchResultsPane({ copy, locale, nearbySearch, results, location, onStartOver, onUserLocationChange }: {
+function SearchResultsPane({ categoryNames, copy, locale, nearbySearch, results, location, onStartOver, onUserLocationChange }: {
+  categoryNames: Record<string, string>;
   copy: (typeof homeCopy)["en"] | (typeof homeCopy)["rw"];
   locale: "en" | "rw";
   nearbySearch: boolean;
@@ -166,7 +169,7 @@ function SearchResultsPane({ copy, locale, nearbySearch, results, location, onSt
             <button className="hafi-results-reset" onClick={onStartOver} type="button">{copy.startOver}</button>
           </div>
           <div className="hafi-results-list">
-            {results.length ? results.map((service) => <ServiceCard key={service.id} onRoute={showRoute} service={service} />) : <div className="hafi-results-empty"><p>{nearbySearch ? copy.noNearby : copy.noResults}</p><p>{copy.searchTip}</p></div>}
+            {results.length ? results.map((service) => <ServiceCard categoryName={categoryNames[service.category]} key={service.id} onRoute={showRoute} service={service} />) : <div className="hafi-results-empty"><p>{nearbySearch ? copy.noNearby : copy.noResults}</p><p>{copy.searchTip}</p></div>}
           </div>
         </div>
 
